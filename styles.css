@@ -552,3 +552,111 @@ body.backup-running .folder-badge .quitar {
         transform: translateX(150%);
     }
 }
+
+[hidden] {
+    display: none !important;
+}
+
+/* Pestañas Respaldar / Restaurar */
+.tab-bar {
+    display: flex;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #555;
+}
+
+.tab {
+    flex: 1;
+    width: 100%;
+    margin: 0;
+    padding: 10px;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    border-radius: 0;
+    color: #aaa;
+}
+
+.tab:hover {
+    background: #333;
+    color: #fff;
+}
+
+.tab.active {
+    border-bottom-color: #0078D7;
+    color: #fff;
+    font-weight: bold;
+}
+
+.tab:disabled {
+    background: transparent;
+    color: #666;
+}
+
+.tab.active:disabled {
+    color: #999;
+}
+
+/* Vista Restaurar */
+.restore-hint {
+    margin-bottom: 10px;
+}
+
+.lista-respaldos {
+    background: #1e1e1e;
+    border: 1px solid #555;
+    border-radius: 5px;
+    height: 300px;
+    overflow-y: auto;
+    text-align: left;
+}
+
+.lista-mensaje {
+    padding: 15px;
+    color: #aaa;
+    text-align: center;
+}
+
+.lista-mensaje.error {
+    color: #ff6b6b;
+}
+
+.backup-item {
+    padding: 12px 15px;
+    border-bottom: 1px solid #333;
+    cursor: pointer;
+    word-break: break-all;
+    transition: background-color 0.2s;
+}
+
+.backup-item:hover {
+    background-color: #2a2a2a;
+}
+
+.backup-item.selected,
+.backup-item.selected:hover {
+    background-color: #005A9E;
+}
+
+body.backup-running .backup-item {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* Botón principal en modo Restaurar */
+#backup-btn.restore-mode {
+    background-color: #2b8a3e;
+}
+
+#backup-btn.restore-mode:hover {
+    background-color: #237032;
+}
+
+#backup-btn.restore-mode:disabled {
+    background-color: #555;
+}
+
+/* Estado con advertencias */
+#status.status-warning {
+    color: #e0a030;
+    font-weight: bold;
+}
