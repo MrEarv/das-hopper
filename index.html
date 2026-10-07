@@ -11,64 +11,80 @@
     <div class="container">
         
         <div class="card" id="opciones_panel">
-            <h2>Gestión de Backup</h2>
-            <div class="backup-options">
-                <label class="backup-option">
-                    <input type="checkbox" id="whatsapp-data" unchecked>
-                    <span class="backup-icon backup-icon-whatsapp" aria-hidden="true">
-                        <svg viewBox="0 0 24 24" focusable="false">
-                            <path d="M20 11.5a8 8 0 0 1-11.8 7L4 20l1.5-4.1A8 8 0 1 1 20 11.5Z"></path>
-                            <path d="M9 8.5c.3-.5.6-.5.9-.1l.8 1.2c.2.3.1.5-.2.8l-.5.5c.5 1 1.3 1.8 2.3 2.3l.5-.5c.3-.3.5-.4.8-.2l1.2.8c.4.3.4.6-.1.9-.7.5-1.5.6-2.3.3-2.2-.8-4-2.6-4.8-4.8-.3-.7-.1-1.5.4-2.2Z"></path>
-                        </svg>
-                    </span>
-                    <span class="option-text">Respaldo de WhatsApp</span>
-                    <span class="checkmark" aria-hidden="true"></span>
-                </label>
-                <label class="backup-option">
-                    <input type="checkbox" id="telegram-data" unchecked>
-                    <span class="backup-icon backup-icon-telegram" aria-hidden="true">
-                        <svg viewBox="0 0 24 24" focusable="false">
-                            <path d="m3 11 17-7-5.5 17-3.3-6.2L3 11Z"></path>
-                            <path d="m11.2 14.8 5.2-5.4"></path>
-                        </svg>
-                    </span>
-                    <span class="option-text">Respaldo de Telegram (Descargas)</span>
-                    <span class="checkmark" aria-hidden="true"></span>
-                </label>
-                <label class="backup-option">
-                    <input type="checkbox" id="dcim-data" unchecked>
-                    <span class="backup-icon backup-icon-photos" aria-hidden="true">
-                        <svg viewBox="0 0 24 24" focusable="false">
-                            <rect x="3" y="4" width="18" height="16" rx="2"></rect>
-                            <circle cx="8.5" cy="9" r="1.5"></circle>
-                            <path d="m4 17 5-5 3 3 3-4 5 6"></path>
-                        </svg>
-                    </span>
-                    <span class="option-text">Respaldo de Fotos y Videos de la cámara (DCIM)</span>
-                    <span class="checkmark" aria-hidden="true"></span>
-                </label>
-                <label class="backup-option">
-                    <input type="checkbox" id="downloads-data" unchecked>
-                    <span class="backup-icon backup-icon-downloads" aria-hidden="true">
-                        <svg viewBox="0 0 24 24" focusable="false">
-                            <path d="M12 3v11"></path>
-                            <path d="m7.5 10 4.5 4.5 4.5-4.5"></path>
-                            <path d="M5 16v4h14v-4"></path>
-                        </svg>
-                    </span>
-                    <span class="option-text">Respaldo de Descargas</span>
-                    <span class="checkmark" aria-hidden="true"></span>
-                </label>
-                <div class="extra-folders-section">
-                    <p class="option-text extra-folders-title">Agregar carpetas extra:</p>
-                    <div class="extra-folders-controls">
-                        <select id="android-folders-list">
-                            <option value="">Esperando dispositivo...</option>
-                        </select>
-                        <button id="btn-add-folder">➕ Añadir</button>
+            <div style="display: flex; margin-bottom: 15px; border-bottom: 1px solid #555;">
+                <button id="tab-backup" style="flex: 1; background: transparent; border: none; border-bottom: 2px solid #0078D7; border-radius: 0; padding: 10px; font-weight: bold; width: 100%; margin: 0; color: white;">Respaldar</button>
+                <button id="tab-restore" style="flex: 1; background: transparent; border: none; border-bottom: 2px solid transparent; border-radius: 0; padding: 10px; color: #aaa; width: 100%; margin: 0;">Restaurar</button>
+            </div>
+
+            <div id="vista-backup">
+                <h2>Gestión de Backup</h2>
+                <div class="backup-options">
+                    <label class="backup-option">
+                        <input type="checkbox" id="whatsapp-data" unchecked>
+                        <span class="backup-icon backup-icon-whatsapp" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" focusable="false">
+                                <path d="M20 11.5a8 8 0 0 1-11.8 7L4 20l1.5-4.1A8 8 0 1 1 20 11.5Z"></path>
+                                <path d="M9 8.5c.3-.5.6-.5.9-.1l.8 1.2c.2.3.1.5-.2.8l-.5.5c.5 1 1.3 1.8 2.3 2.3l.5-.5c.3-.3.5-.4.8-.2l1.2.8c.4.3.4.6-.1.9-.7.5-1.5.6-2.3.3-2.2-.8-4-2.6-4.8-4.8-.3-.7-.1-1.5.4-2.2Z"></path>
+                            </svg>
+                        </span>
+                        <span class="option-text">Respaldo de WhatsApp</span>
+                        <span class="checkmark" aria-hidden="true"></span>
+                    </label>
+                    <label class="backup-option">
+                        <input type="checkbox" id="telegram-data" unchecked>
+                        <span class="backup-icon backup-icon-telegram" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" focusable="false">
+                                <path d="m3 11 17-7-5.5 17-3.3-6.2L3 11Z"></path>
+                                <path d="m11.2 14.8 5.2-5.4"></path>
+                            </svg>
+                        </span>
+                        <span class="option-text">Respaldo de Telegram (Descargas)</span>
+                        <span class="checkmark" aria-hidden="true"></span>
+                    </label>
+                    <label class="backup-option">
+                        <input type="checkbox" id="dcim-data" unchecked>
+                        <span class="backup-icon backup-icon-photos" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" focusable="false">
+                                <rect x="3" y="4" width="18" height="16" rx="2"></rect>
+                                <circle cx="8.5" cy="9" r="1.5"></circle>
+                                <path d="m4 17 5-5 3 3 3-4 5 6"></path>
+                            </svg>
+                        </span>
+                        <span class="option-text">Respaldo de Fotos y Videos de la cámara (DCIM)</span>
+                        <span class="checkmark" aria-hidden="true"></span>
+                    </label>
+                    <label class="backup-option">
+                        <input type="checkbox" id="downloads-data" unchecked>
+                        <span class="backup-icon backup-icon-downloads" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" focusable="false">
+                                <path d="M12 3v11"></path>
+                                <path d="m7.5 10 4.5 4.5 4.5-4.5"></path>
+                                <path d="M5 16v4h14v-4"></path>
+                            </svg>
+                        </span>
+                        <span class="option-text">Respaldo de Descargas</span>
+                        <span class="checkmark" aria-hidden="true"></span>
+                    </label>
+                    <div class="extra-folders-section">
+                        <p class="option-text extra-folders-title">Agregar carpetas extra:</p>
+                        <div class="extra-folders-controls">
+                            <select id="android-folders-list">
+                                <option value="">Esperando dispositivo...</option>
+                            </select>
+                            <button id="btn-add-folder">➕ Añadir</button>
+                        </div>
+                        
+                        <div id="carpetas-apiladas"></div>
                     </div>
-                    
-                    <div id="carpetas-apiladas"></div>
+                </div>
+            </div>
+
+            <div id="vista-restore" style="display: none;">
+                <h2>Restaurar Dispositivo</h2>
+                <p class="option-text" style="margin-bottom: 10px;">Selecciona un respaldo para inyectar:</p>
+                
+                <div id="lista-respaldos" style="background: #1e1e1e; border: 1px solid #555; border-radius: 5px; height: 300px; overflow-y: auto; text-align: left;">
+                    <p style="padding: 15px; color: #aaa; text-align: center;">Buscando respaldos...</p>
                 </div>
             </div>
             <p id="backup-status"></p>
