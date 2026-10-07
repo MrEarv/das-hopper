@@ -2,174 +2,9 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; script-src 'self';">
     <title>Das-Hopper Backup</title>
-    <style>
-        body { 
-            font-family: 'Verdana', Tahoma, Geneva, sans-serif; 
-            background-color: #1e1e1e; 
-            color: white; 
-            padding: 20px; 
-            text-align: center; 
-        }
-        
-        .container { 
-            display: flex; 
-            width: 90%; 
-            margin: 0 auto; /* Centra el contenedor en la pantalla */
-            gap: 20px; /* Crea espacio entre la tarjeta izquierda y la derecha */
-        }
-        
-        .card { 
-            background-color: #2d2d2d; 
-            padding: 20px; 
-            border-radius: 8px; 
-            margin-top: 20px; 
-        }
-
-        /* Tarjeta de la izquierda (Opciones) - Ocupa 2 partes (2/3) */
-        #opciones_panel {
-            flex: 2; 
-        }
-
-        /* Tarjeta de la derecha (Estado del celular) - Ocupa 1 parte (1/3) */
-        #celular_status { 
-            flex: 1; 
-        }
-
-        button { 
-            background-color: #0078D7; 
-            color: white; 
-            border: none; 
-            padding: 15px 30px; 
-            font-size: 16px; 
-            border-radius: 5px; 
-            cursor: pointer; 
-            margin: 10px; 
-            width: 80%; /* Para que los botones se vean uniformes */
-        }
-        
-        button:hover { 
-            background-color: #005A9E; 
-        }
-        
-        button:disabled { 
-            background-color: #555; 
-            cursor: not-allowed; 
-        }
-        
-        #status { 
-            margin-top: 15px; 
-            color: #aaa; 
-        }
-        
-        .success { 
-            color: #4CAF50 !important; 
-            font-weight: bold; 
-        }
-
-        .backup-options {
-            display: grid;
-            gap: 12px;
-            margin: 20px 0;
-            text-align: left;
-        }
-
-        .backup-option {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 14px 16px;
-            border: 1px solid #555;
-            border-radius: 8px;
-            background-color: #383838;
-            cursor: pointer;
-            transition: background-color 160ms ease, border-color 160ms ease;
-        }
-
-        .backup-option:hover {
-            background-color: #424242;
-            border-color: #888;
-        }
-
-        .backup-option input {
-            position: absolute;
-            width: 1px;
-            height: 1px;
-            opacity: 0;
-        }
-
-        .backup-option input:focus-visible + .checkmark {
-            outline: 2px solid white;
-            outline-offset: 3px;
-        }
-
-        .checkmark {
-            display: inline-flex;
-            flex: 0 0 20px;
-            align-items: center;
-            justify-content: center;
-            width: 20px;
-            height: 20px;
-            border: 2px solid #aaa;
-            border-radius: 5px;
-            background-color: #2d2d2d;
-            transition: background-color 160ms ease, border-color 160ms ease;
-        }
-
-        .checkmark::after {
-            width: 5px;
-            height: 10px;
-            border: solid white;
-            border-width: 0 2px 2px 0;
-            content: "";
-            opacity: 0;
-            transform: rotate(45deg) scale(0.5);
-            transition: opacity 160ms ease, transform 160ms ease;
-        }
-
-        .backup-option input:checked + .checkmark {
-            border-color: #0078D7;
-            background-color: #0078D7;
-        }
-
-        .backup-option input:checked + .checkmark::after {
-            opacity: 1;
-            transform: rotate(45deg) scale(1);
-        }
-
-        .backup-option input:checked ~ .option-text {
-            color: white;
-        }
-
-        .option-text {
-            color: #ddd;
-            line-height: 1.4;
-        }
-        /* Estilo para las carpetas apiladas */
-        .folder-badge {
-            background-color: #424242;
-            border: 1px solid #666;
-            padding: 6px 12px;
-            border-radius: 15px;
-            font-size: 14px;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            color: #ddd;
-        }
-
-        .folder-badge .quitar {
-            color: #ff6b6b;
-            font-weight: bold;
-            cursor: pointer;
-            padding: 0 4px;
-        }
-        
-        .folder-badge .quitar:hover {
-            color: #ff3b3b;
-        }
-    </style>
+    <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
     <h1>Das-Hopper ADB Tool</h1>
@@ -180,50 +15,100 @@
             <div class="backup-options">
                 <label class="backup-option">
                     <input type="checkbox" id="whatsapp-data" unchecked>
-                    <span class="checkmark" aria-hidden="true"></span>
+                    <span class="backup-icon backup-icon-whatsapp" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" focusable="false">
+                            <path d="M20 11.5a8 8 0 0 1-11.8 7L4 20l1.5-4.1A8 8 0 1 1 20 11.5Z"></path>
+                            <path d="M9 8.5c.3-.5.6-.5.9-.1l.8 1.2c.2.3.1.5-.2.8l-.5.5c.5 1 1.3 1.8 2.3 2.3l.5-.5c.3-.3.5-.4.8-.2l1.2.8c.4.3.4.6-.1.9-.7.5-1.5.6-2.3.3-2.2-.8-4-2.6-4.8-4.8-.3-.7-.1-1.5.4-2.2Z"></path>
+                        </svg>
+                    </span>
                     <span class="option-text">Respaldo de WhatsApp</span>
+                    <span class="checkmark" aria-hidden="true"></span>
                 </label>
                 <label class="backup-option">
                     <input type="checkbox" id="telegram-data" unchecked>
-                    <span class="checkmark" aria-hidden="true"></span>
+                    <span class="backup-icon backup-icon-telegram" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" focusable="false">
+                            <path d="m3 11 17-7-5.5 17-3.3-6.2L3 11Z"></path>
+                            <path d="m11.2 14.8 5.2-5.4"></path>
+                        </svg>
+                    </span>
                     <span class="option-text">Respaldo de Telegram (Descargas)</span>
+                    <span class="checkmark" aria-hidden="true"></span>
                 </label>
                 <label class="backup-option">
                     <input type="checkbox" id="dcim-data" unchecked>
-                    <span class="checkmark" aria-hidden="true"></span>
+                    <span class="backup-icon backup-icon-photos" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" focusable="false">
+                            <rect x="3" y="4" width="18" height="16" rx="2"></rect>
+                            <circle cx="8.5" cy="9" r="1.5"></circle>
+                            <path d="m4 17 5-5 3 3 3-4 5 6"></path>
+                        </svg>
+                    </span>
                     <span class="option-text">Respaldo de Fotos y Videos de la cámara (DCIM)</span>
+                    <span class="checkmark" aria-hidden="true"></span>
                 </label>
                 <label class="backup-option">
                     <input type="checkbox" id="downloads-data" unchecked>
-                    <span class="checkmark" aria-hidden="true"></span>
+                    <span class="backup-icon backup-icon-downloads" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" focusable="false">
+                            <path d="M12 3v11"></path>
+                            <path d="m7.5 10 4.5 4.5 4.5-4.5"></path>
+                            <path d="M5 16v4h14v-4"></path>
+                        </svg>
+                    </span>
                     <span class="option-text">Respaldo de Descargas</span>
+                    <span class="checkmark" aria-hidden="true"></span>
                 </label>
-                <!-- Nueva sección de apilamiento -->
-                <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #555;">
-                    <p class="option-text" style="margin-bottom: 10px;">Agregar carpetas extra:</p>
-                    <div style="display: flex; gap: 10px;">
-                        <select id="android-folders-list" style="flex: 1; padding: 10px; background: #2d2d2d; color: white; border: 1px solid #555; border-radius: 5px; outline: none;">
+                <div class="extra-folders-section">
+                    <p class="option-text extra-folders-title">Agregar carpetas extra:</p>
+                    <div class="extra-folders-controls">
+                        <select id="android-folders-list">
                             <option value="">Esperando dispositivo...</option>
                         </select>
-                        <button id="btn-add-folder" style="margin: 0; width: auto; background-color: #2b8a3e; padding: 10px 15px;">➕ Añadir</button>
+                        <button id="btn-add-folder">➕ Añadir</button>
                     </div>
                     
-                    <!-- Aquí es donde aparecerán las burbujas mágicamente -->
-                    <div id="carpetas-apiladas" style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px;"></div>
+                    <div id="carpetas-apiladas"></div>
                 </div>
             </div>
             <p id="backup-status"></p>
         </div>
         
         <div class="card" id="celular_status">
-            <h3 id="device-status">Estado: Buscando dispositivo...</h3>
-            <p id="status">Por favor, conecta tu dispositivo y activa la Depuración USB.</p>
-            <button id="backup-btn" disabled>Realizar Backup</button>
+            <div id="celular-info">
+                <h3 id="device-status">Estado: Buscando dispositivo...</h3>
+                <div class="phone-illustration" aria-hidden="true">
+                    <div class="phone-screen">
+                        <div class="phone-camera"></div>
+                        <div class="phone-sun"></div>
+                        <div class="phone-hill phone-hill-back"></div>
+                        <div class="phone-hill phone-hill-front"></div>
+                        <div class="phone-home-indicator"></div>
+                    </div>
+                </div>
+                <p id="status">Por favor, conecta tu dispositivo y activa la Depuración USB.</p>
+            </div>
+            <div id="opcion">
+                <input type="text" id="backup-name" placeholder="Nombre del backup (opcional)">
+                <div class="backup-destination">
+                    <input type="text" id="backup-path" placeholder="Ubicación del backup" readonly>
+                    <button id="select-backup-path" type="button">Ubicación</button>
+                </div>
+                <button id="backup-btn" disabled>Realizar Backup</button>
+            </div>
         </div>
         
     </div>
+    <div class="container" id="progress-container">
+        <div class="card" id="progress-card">
+            <div id="progress-bar-container" role="progressbar" aria-label="Categorías de respaldo completadas" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-valuetext="Esperando inicio...">
+                <div id="progress-bar"></div>
+            </div>
+            <p id="progress-text">Esperando inicio...</p>
+        </div>
 
-    <!-- Conectamos la lógica del frontend -->
+    </div>
+
     <script src="./renderer.js"></script>
 </body>
 </html>

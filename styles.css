@@ -1,0 +1,554 @@
+body {
+    font-family: 'Verdana', Tahoma, Geneva, sans-serif;
+    background-color: #1e1e1e;
+    color: white;
+    padding: 12px 20px 28px;
+    text-align: center;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    margin: 0;
+    overflow: hidden;
+}
+
+html {
+    height: 100%;
+    overflow: hidden;
+}
+
+h1 {
+    flex: 0 0 auto;
+    margin: 8px 0 4px;
+}
+
+.container {
+    display: flex;
+    width: 90%;
+    margin: 0 auto;
+    gap: 20px;
+}
+
+#opciones_panel,
+#celular_status {
+    min-height: 0;
+}
+
+#opciones_panel {
+    overflow: hidden;
+}
+
+#celular_status {
+    overflow: hidden;
+}
+
+#opciones_panel,
+#celular_status {
+    flex-shrink: 1;
+}
+
+.container:not(#progress-container) {
+    flex: 1 1 0;
+    min-height: 0;
+    align-items: stretch;
+}
+
+.card {
+    background-color: #2d2d2d;
+    padding: 14px;
+    border-radius: 8px;
+    margin-top: 12px;
+}
+
+#opciones_panel {
+    flex: 2;
+}
+
+#celular_status {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+#celular-info {
+    flex: 4;
+}
+
+.phone-illustration {
+    position: relative;
+    isolation: isolate;
+    width: 88px;
+    height: 156px;
+    margin: 0 auto 10px;
+    padding: 7px;
+    box-sizing: border-box;
+    background: linear-gradient(135deg, #b9c2d0, #4d5668 45%, #202735);
+    border: 2px solid #d9e0eb;
+    border-radius: 22px;
+    box-shadow: 0 10px 24px #0008, inset 0 0 0 2px #151923;
+}
+
+.phone-screen {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    border-radius: 14px;
+    background: linear-gradient(155deg, #63d8e8 0%, #5c91e8 48%, #564e9c 100%);
+}
+
+.phone-camera {
+    position: absolute;
+    z-index: 2;
+    top: 6px;
+    left: 50%;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #17202d;
+    transform: translateX(-50%);
+}
+
+.phone-sun {
+    position: absolute;
+    top: 34px;
+    right: 13px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #ffe28a;
+    box-shadow: 0 0 18px #ffe28a99;
+}
+
+.phone-hill {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 66px;
+    border-radius: 50% 50% 0 0 / 28% 28% 0 0;
+}
+
+.phone-hill-back {
+    bottom: 18px;
+    background: #54c7a3;
+    transform: translateX(-18px) rotate(-8deg);
+}
+
+.phone-hill-front {
+    height: 48px;
+    background: #237f7b;
+    transform: translateX(15px) rotate(8deg);
+}
+
+.phone-home-indicator {
+    position: absolute;
+    bottom: 5px;
+    left: 50%;
+    z-index: 2;
+    width: 34px;
+    height: 3px;
+    border-radius: 3px;
+    background: #ffffffcc;
+    transform: translateX(-50%);
+}
+
+#celular_status.device-connected .phone-illustration::before {
+    position: absolute;
+    z-index: -1;
+    inset: -5px;
+    border: 2px solid #55f2ff;
+    border-radius: 26px;
+    box-shadow: 0 0 10px #55f2ff, 0 0 24px #20dfff, 0 0 42px #20dfff99;
+    content: "";
+    animation: phone-glow 1.8s ease-in-out infinite;
+}
+
+@keyframes phone-glow {
+    0%, 100% {
+        opacity: 0.55;
+        box-shadow: 0 0 8px #55f2ff, 0 0 18px #20dfff, 0 0 32px #20dfff88;
+    }
+    50% {
+        opacity: 1;
+        box-shadow: 0 0 13px #55f2ff, 0 0 30px #20dfff, 0 0 48px #20dfffcc;
+    }
+}
+
+#opciones {
+    flex: 1;
+}
+
+button {
+    background-color: #0078D7;
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    font-size: 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin: 10px;
+    width: 80%;
+}
+
+button:hover {
+    background-color: #005A9E;
+}
+
+button:disabled {
+    background-color: #555;
+    cursor: not-allowed;
+}
+
+button.cancel-backup {
+    background-color: #b83b3b;
+}
+
+button.cancel-backup:hover {
+    background-color: #922d2d;
+}
+
+#status {
+    margin-top: 15px;
+    color: #aaa;
+    transition: color 160ms ease;
+}
+
+#status.status-info {
+    color: #aaa;
+}
+
+#status.status-success {
+    color: #4CAF50;
+    font-weight: bold;
+}
+
+#status.status-error {
+    color: #ff6b6b;
+    font-weight: bold;
+}
+
+.success {
+    color: #4CAF50 !important;
+    font-weight: bold;
+}
+
+.backup-options {
+    display: grid;
+    gap: 8px;
+    margin: 12px 0;
+    text-align: left;
+}
+
+.backup-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 9px 12px;
+    border: 1px solid #555;
+    border-radius: 8px;
+    background-color: #383838;
+    cursor: pointer;
+    transition: background-color 160ms ease, border-color 160ms ease;
+}
+
+.backup-option:hover {
+    background-color: #424242;
+    border-color: #888;
+}
+
+.backup-option input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+}
+
+.backup-option input:focus-visible ~ .checkmark {
+    outline: 2px solid white;
+    outline-offset: 3px;
+}
+
+.backup-icon {
+    display: inline-flex;
+    flex: 0 0 24px;
+    align-items: center;
+    justify-content: center;
+}
+
+.backup-icon svg {
+    width: 22px;
+    height: 22px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.8;
+}
+
+.backup-icon-whatsapp {
+    color: #55d98b;
+}
+
+.backup-icon-telegram {
+    color: #55b9f3;
+}
+
+.backup-icon-photos {
+    color: #f0bd62;
+}
+
+.backup-icon-downloads {
+    color: #b6a0ff;
+}
+
+.checkmark {
+    display: inline-flex;
+    flex: 0 0 20px;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #aaa;
+    border-radius: 5px;
+    background-color: #2d2d2d;
+    transition: background-color 160ms ease, border-color 160ms ease;
+    margin-left: auto;
+}
+
+.checkmark::after {
+    width: 5px;
+    height: 10px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    content: "";
+    opacity: 0;
+    transform: rotate(45deg) scale(0.5);
+    transition: opacity 160ms ease, transform 160ms ease;
+}
+
+.backup-option input:checked ~ .checkmark {
+    border-color: #0078D7;
+    background-color: #0078D7;
+}
+
+.backup-option input:checked ~ .checkmark::after {
+    opacity: 1;
+    transform: rotate(45deg) scale(1);
+}
+
+.backup-option input:checked ~ .option-text {
+    color: white;
+}
+
+.option-text {
+    color: #ddd;
+    line-height: 1.4;
+}
+
+.extra-folders-section {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #555;
+}
+
+.extra-folders-title {
+    margin-bottom: 6px;
+}
+
+.extra-folders-controls {
+    display: flex;
+    gap: 10px;
+}
+
+#android-folders-list {
+    flex: 1;
+    padding: 10px;
+    background: #2d2d2d;
+    color: white;
+    border: 1px solid #555;
+    border-radius: 5px;
+    outline: none;
+}
+
+#btn-add-folder {
+    margin: 0;
+    width: auto;
+    background-color: #2b8a3e;
+    padding: 10px 15px;
+}
+
+#carpetas-apiladas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.folder-badge {
+    background-color: #424242;
+    border: 1px solid #666;
+    padding: 6px 12px;
+    border-radius: 15px;
+    font-size: 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #ddd;
+}
+
+.folder-badge .quitar {
+    color: #ff6b6b;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 0 4px;
+}
+
+.folder-badge .quitar:hover {
+    color: #ff3b3b;
+}
+
+body.backup-running .folder-badge .quitar {
+    pointer-events: none;
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+#backup-name {
+    width: 84%;
+    padding: 10px;
+    margin-bottom: 10px;
+    background-color: #2d2d2d;
+    color: white;
+    border: 1px solid #555;
+    border-radius: 5px;
+}
+
+.backup-destination {
+    display: flex;
+    align-items: stretch;
+    gap: 8px;
+    margin: 0 auto 10px;
+    width: 90%;
+}
+
+#backup-path {
+    flex: 1;
+    min-width: 0;
+    padding: 10px;
+    background-color: #2d2d2d;
+    color: #ddd;
+    border: 1px solid #555;
+    border-radius: 5px;
+}
+
+#select-backup-path {
+    flex: 0 0 auto;
+    width: auto;
+    margin: 0;
+    padding: 10px 12px;
+    font-size: 14px;
+}
+
+#progress-container {
+    display: flex;
+    flex: 0 0 auto;
+    width: 90%;
+    margin: auto auto 0;
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 180ms ease;
+}
+
+#progress-container.progress-visible {
+    visibility: visible;
+    opacity: 1;
+    pointer-events: auto;
+}
+
+#progress-card {
+    flex: 1;
+    min-width: 0;
+    text-align: left;
+}
+
+#progress-bar-container {
+    position: relative;
+    width: 100%;
+    height: 14px;
+    overflow: hidden;
+    border: 1px solid #555;
+    border-radius: 8px;
+    background-color: #1e1e1e;
+}
+
+#progress-bar-container.progress-running::after {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 22%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, transparent, #ffffff99, transparent);
+    content: "";
+    animation: progress-indeterminate 1.2s ease-in-out infinite;
+}
+
+@keyframes progress-indeterminate {
+    from {
+        transform: translateX(-100%);
+    }
+    to {
+        transform: translateX(455%);
+    }
+}
+
+#progress-bar {
+    width: 0;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #0078D7, #35c8e8);
+    transition: width 180ms ease, background-color 180ms ease;
+}
+
+#progress-bar.progress-active {
+    background: linear-gradient(90deg, #0078D7, #35c8e8);
+}
+
+#progress-bar.progress-error {
+    background: #e05252;
+}
+
+#progress-bar.progress-cancelled {
+    background: #d89b38;
+}
+
+#progress-text,
+#backup-status {
+    min-height: 1.2em;
+    color: #bbb;
+}
+
+#progress-card {
+    padding-top: 12px;
+    padding-bottom: 12px;
+}
+
+#progress-text {
+    margin: 8px 0 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #celular_status.device-connected .phone-illustration::before {
+        animation: none;
+    }
+
+    #progress-bar {
+        transition: none;
+    }
+
+    #progress-bar-container.progress-running::after {
+        animation: none;
+        transform: translateX(150%);
+    }
+}
