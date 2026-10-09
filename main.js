@@ -37,6 +37,8 @@ function createWindow() {
     const win = new BrowserWindow({
         width: 1000,
         height: 780,
+        backgroundColor: '#1e1e1e',
+        show: false,
         webPreferences: {
             nodeIntegration: true, // Permite usar módulos de Node en el HTML
             contextIsolation: false // Simplifica el proyecto (ver notas de seguridad)
@@ -46,6 +48,7 @@ function createWindow() {
         center: true
     });
 
+    win.once('ready-to-show', () => win.show());
     win.loadFile('index.html');
     iniciarMonitorADB(win);
 }
@@ -545,11 +548,15 @@ async function ejecutarRespaldo(event, selecciones, op) {
 
     if (op.cancelado) return RESULTADO_CANCELADO();
 
+    const medida = await medirCarpeta(carpetaDestinoPC, op);
+    if (op.cancelado) return RESULTADO_CANCELADO();
+
     return {
         success: true,
         msg: advertencias.length
             ? `Respaldo completado con advertencias en ${carpetaDestinoPC}`
             : `Respaldo completado en ${carpetaDestinoPC}`,
+        bytesRespaldados: medida.bytes,
         warnings: advertencias
     };
 }
@@ -614,6 +621,7 @@ async function ejecutarRestauracion(event, datos, op) {
         tareas.push({
             nombre: carpeta.name,
             ruta,
+            bytes: medida.bytes,
             pesoKB: Math.max(1, Math.ceil(medida.bytes / 1024)),
             totalArchivos: Math.max(1, medida.archivos)
         });
@@ -683,6 +691,7 @@ async function ejecutarRestauracion(event, datos, op) {
         msg: advertencias.length
             ? 'Restauración finalizada con advertencias.'
             : 'Restauración finalizada exitosamente.',
+        bytesRestaurados: tareas.reduce((suma, tarea) => suma + tarea.bytes, 0),
         warnings: advertencias
     };
 }

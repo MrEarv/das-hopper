@@ -38,6 +38,7 @@ let cancelacionEnCurso = false;
 let estadosControlesPrevios = new Map();
 let modoActual = 'backup';
 let respaldoSeleccionado = '';
+let nombreBackupDraft = '';
 let carpetasExtra = [];
 let ultimoPorcentaje = 0;
 
@@ -53,6 +54,20 @@ function setStatus(message, type = 'info') {
     statusText.innerText = message;
     statusText.classList.remove('status-error', 'status-success', 'status-info', 'status-warning');
     statusText.classList.add(`status-${type}`);
+}
+
+function formatearDuracion(milisegundos) {
+    const totalSegundos = Math.floor(milisegundos / 1000);
+    const minutos = Math.floor(totalSegundos / 60);
+    const segundos = totalSegundos % 60;
+    return minutos > 0
+        ? `${minutos} min ${segundos} s`
+        : `${segundos} s`;
+}
+
+function formatearGigabytes(bytes) {
+    const gigabytes = bytes / (1024 ** 3);
+    return `${gigabytes < 0.01 && gigabytes > 0 ? '<0.01' : gigabytes.toFixed(2)} GB`;
 }
 
 function setProgress(percent, message, active = false) {
@@ -159,20 +174,41 @@ function renderizarCarpetas() {
         const badge = document.createElement('div');
         badge.className = 'folder-badge';
 
-        const etiqueta = document.createElement('span');
-        etiqueta.textContent = `📁 ${carpeta.nombre}`; // textContent: evita inyección de HTML
+        const icono = document.createElement('span');
+        icono.className = 'folder-badge-icon';
+        icono.setAttribute('aria-hidden', 'true');
 
-        const quitar = document.createElement('span');
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('viewBox', '0 0 24 24');
+        svg.setAttribute('focusable', 'false');
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.setAttribute('d', 'M3 6.5A1.5 1.5 0 0 1 4.5 5H10l2 2h7.5A1.5 1.5 0 0 1 21 8.5v9a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 17.5v-11Z');
+        svg.appendChild(path);
+        icono.appendChild(svg);
+
+        const etiqueta = document.createElement('span');
+        etiqueta.textContent = carpeta.nombre;
+
+        const quitar = document.createElement('button');
+        quitar.type = 'button';
         quitar.className = 'quitar';
         quitar.title = 'Quitar';
-        quitar.textContent = '✖';
+        quitar.setAttribute('aria-label', `Quitar carpeta ${carpeta.nombre}`);
+        const quitarSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        quitarSvg.setAttribute('viewBox', '0 0 24 24');
+        quitarSvg.setAttribute('focusable', 'false');
+        quitarSvg.setAttribute('aria-hidden', 'true');
+        const quitarPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        quitarPath.setAttribute('d', 'm6 6 12 12M18 6 6 18');
+        quitarSvg.appendChild(quitarPath);
+        quitar.appendChild(quitarSvg);
         quitar.addEventListener('click', () => {
             if (operacionEnCurso) return;
             carpetasExtra = carpetasExtra.filter((c) => c.ruta !== carpeta.ruta);
             renderizarCarpetas();
         });
 
-        badge.append(etiqueta, quitar);
+        badge.append(icono, etiqueta, quitar);
         contenedorApiladas.appendChild(badge);
     });
 }
@@ -234,9 +270,18 @@ ipcRenderer.on('estado-dispositivo', (event, data) => {
 // Pestañas
 // ---------------------------------------------------------------------------
 function cambiarModo(modo) {
-    modoActual = modo;
     const esBackup = modo === 'backup';
 
+    if (esBackup && modoActual !== 'backup') {
+        backupNameInput.disabled = false;
+        backupNameInput.value = nombreBackupDraft;
+    } else if (!esBackup && modoActual !== 'restore') {
+        nombreBackupDraft = backupNameInput.value;
+        backupNameInput.value = '';
+        backupNameInput.disabled = true;
+    }
+
+    modoActual = modo;
     tabBackup.classList.toggle('active', esBackup);
     tabRestore.classList.toggle('active', !esBackup);
     tabBackup.setAttribute('aria-selected', String(esBackup));
@@ -256,6 +301,7 @@ tabRestore.addEventListener('click', () => cambiarModo('restore'));
 // ---------------------------------------------------------------------------
 async function cargarListaRespaldos() {
     respaldoSeleccionado = ''; // evita restaurar una selección que ya no se ve
+    backupNameInput.value = '';
     const carpetaBase = backupPathInput.value;
 
     if (!carpetaBase) {
@@ -281,13 +327,34 @@ async function cargarListaRespaldos() {
     respuesta.respaldos.forEach((nombreRespaldo) => {
         const item = document.createElement('div');
         item.className = 'backup-item';
-        item.textContent = `📦 ${nombreRespaldo}`;
+
+        const icono = document.createElement('span');
+        icono.className = 'backup-item-icon';
+        icono.setAttribute('aria-hidden', 'true');
+
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('viewBox', '0 0 24 24');
+        svg.setAttribute('focusable', 'false');
+        [
+            'M3 7.5 12 3l9 4.5v9L12 21l-9-4.5v-9Z',
+            'm3 7.5 9 4.5 9-4.5',
+            'M12 12v9',
+            'm7.5 5.25 9 4.5'
+        ].forEach((d) => {
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            path.setAttribute('d', d);
+            svg.appendChild(path);
+        });
+
+        icono.appendChild(svg);
+        item.append(icono, document.createTextNode(nombreRespaldo));
 
         item.addEventListener('click', () => {
             if (operacionEnCurso) return;
             listaRespaldos.querySelectorAll('.backup-item').forEach((el) => el.classList.remove('selected'));
             item.classList.add('selected');
             respaldoSeleccionado = nombreRespaldo;
+            backupNameInput.value = nombreRespaldo;
         });
 
         listaRespaldos.appendChild(item);
@@ -310,20 +377,22 @@ async function ejecutarOperacionUI({ tipo, canal, payload, estadoInicial, textoI
     setProgress(0, textoInicial, true);
 
     let respuesta;
+    const inicio = performance.now();
     try {
         respuesta = await ipcRenderer.invoke(canal, payload);
     } catch (error) {
         respuesta = { success: false, msg: error.message };
     }
+    const duracionMs = performance.now() - inicio;
 
     operacionEnCurso = null;
     cancelacionEnCurso = false;
     bloquearControles(false);
     actualizarBoton();
-    mostrarResultado(tipo, respuesta);
+    mostrarResultado(tipo, respuesta, duracionMs);
 }
 
-function mostrarResultado(tipo, respuesta) {
+function mostrarResultado(tipo, respuesta, duracionMs) {
     const etiqueta = tipo === 'restore' ? 'Restauración' : 'Respaldo';
     const o = tipo === 'restore' ? 'a' : 'o'; // concordancia de género
     progresoTexto.innerText = '';
@@ -334,11 +403,17 @@ function mostrarResultado(tipo, respuesta) {
         setProgress(ultimoPorcentaje, `${etiqueta} cancelad${o} en ${Math.floor(ultimoPorcentaje)}%`);
     } else if (respuesta.success) {
         const advertencias = respuesta.warnings || [];
+        const bytesTransferidos = tipo === 'backup'
+            ? respuesta.bytesRespaldados
+            : respuesta.bytesRestaurados;
+        const detalleOperacion = Number.isFinite(bytesTransferidos)
+            ? ` · ${formatearGigabytes(bytesTransferidos)} · ${formatearDuracion(duracionMs)}`
+            : '';
         if (advertencias.length) {
-            setStatus(`${etiqueta} completad${o} con ${advertencias.length} advertencia(s).`, 'warning');
+            setStatus(`${etiqueta} completad${o} con ${advertencias.length} advertencia(s)${detalleOperacion}.`, 'warning');
             progresoTexto.innerText = advertencias.join(' · ');
         } else {
-            setStatus(`${etiqueta} completad${o}`, 'success');
+            setStatus(`${etiqueta} completad${o}${detalleOperacion}`, 'success');
         }
         setProgress(100, `100% completado · ${respuesta.msg}`);
     } else {
@@ -392,7 +467,6 @@ async function iniciarRespaldo() {
         dcim: document.getElementById('dcim-data').checked,
         downloads: document.getElementById('downloads-data').checked,
         extras: carpetasExtra,
-        backupName: backupNameInput.value.trim() || generarNombreBackup(dispositivoIdActual),
         destinationPath: carpetaDestino
     };
 
@@ -401,6 +475,10 @@ async function iniciarRespaldo() {
         setStatus('Selecciona al menos una opción para respaldar.', 'error');
         return;
     }
+
+    const nombreBackup = backupNameInput.value.trim() || generarNombreBackup(dispositivoIdActual);
+    backupNameInput.value = nombreBackup;
+    selecciones.backupName = nombreBackup;
 
     await ejecutarOperacionUI({
         tipo: 'backup',

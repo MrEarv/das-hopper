@@ -2,6 +2,7 @@ body {
     font-family: 'Verdana', Tahoma, Geneva, sans-serif;
     background-color: #1e1e1e;
     color: white;
+    user-select: none;
     padding: 12px 20px 28px;
     text-align: center;
     box-sizing: border-box;
@@ -15,6 +16,12 @@ body {
 html {
     height: 100%;
     overflow: hidden;
+}
+
+input,
+select,
+textarea {
+    user-select: text;
 }
 
 h1 {
@@ -94,7 +101,7 @@ h1 {
     height: 100%;
     overflow: hidden;
     border-radius: 14px;
-    background: linear-gradient(155deg, #63d8e8 0%, #5c91e8 48%, #564e9c 100%);
+    background: linear-gradient(155deg, #183c39 0%, #132c30 55%, #202735 100%);
 }
 
 .phone-camera {
@@ -109,35 +116,24 @@ h1 {
     transform: translateX(-50%);
 }
 
-.phone-sun {
+.phone-android-icon {
     position: absolute;
-    top: 34px;
-    right: 13px;
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    background: #ffe28a;
-    box-shadow: 0 0 18px #ffe28a99;
+    top: 50%;
+    left: 50%;
+    width: 48px;
+    height: 58px;
+    fill: none;
+    color: #55d98b;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 2;
+    transform: translate(-50%, -50%);
 }
 
-.phone-hill {
-    position: absolute;
-    bottom: 0;
-    width: 100%;
-    height: 66px;
-    border-radius: 50% 50% 0 0 / 28% 28% 0 0;
-}
-
-.phone-hill-back {
-    bottom: 18px;
-    background: #54c7a3;
-    transform: translateX(-18px) rotate(-8deg);
-}
-
-.phone-hill-front {
-    height: 48px;
-    background: #237f7b;
-    transform: translateX(15px) rotate(8deg);
+.phone-android-icon circle {
+    fill: currentColor;
+    stroke: none;
 }
 
 .phone-home-indicator {
@@ -172,6 +168,13 @@ h1 {
         opacity: 1;
         box-shadow: 0 0 13px #55f2ff, 0 0 30px #20dfff, 0 0 48px #20dfffcc;
     }
+}
+
+body.backup-running #celular_status.device-connected .phone-illustration::before {
+    border-color: #ffbd59;
+    box-shadow: 0 0 10px #ffbd59, 0 0 24px #ff9f43, 0 0 42px #ff9f4399;
+    animation: none;
+    opacity: 1;
 }
 
 #opciones {
@@ -242,35 +245,70 @@ button.cancel-backup:hover {
 .backup-option {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 9px 12px;
-    border: 1px solid #555;
+    gap: 14px;
+    padding: 12px 16px; /* Más padding vertical para separarlas */
+    border: 1px solid transparent; /* Borde invisible por defecto */
     border-radius: 8px;
-    background-color: #383838;
+    background-color: #333; /* Un gris un poco más claro que la tarjeta */
     cursor: pointer;
-    transition: background-color 160ms ease, border-color 160ms ease;
+    transition: all 0.2s ease;
 }
 
 .backup-option:hover {
-    background-color: #424242;
-    border-color: #888;
+    background-color: #3a3a3a;
+    border-color: #555;
 }
 
-.backup-option input {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    opacity: 0;
+.backup-option input:checked ~ .checkmark {
+    border-color: #0078D7;
+    background-color: #0078D7;
 }
 
-.backup-option input:focus-visible ~ .checkmark {
-    outline: 2px solid white;
-    outline-offset: 3px;
+.backup-option:has(input:checked) {
+    background-color: #2a3a4a; /* Un ligero tinte azul al fondo si está marcado */
+    border-color: #0078D7;
+}
+/* Ocultar de forma absoluta el checkbox nativo */
+.backup-option input[type="checkbox"] {
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    position: absolute !important;
+    opacity: 0 !important;
+    width: 0 !important;
+    height: 0 !important;
+    pointer-events: none;
+}
+button#backup-btn {
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    padding: 14px 24px;
+    margin-top: 15px;
+    width: 100%;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 120, 215, 0.3); /* Resplandor exterior */
+    transition: all 0.2s ease;
 }
 
+button#backup-btn:hover:not(:disabled) {
+    transform: translateY(-2px); /* Se levanta ligeramente */
+    box-shadow: 0 6px 16px rgba(0, 120, 215, 0.4);
+}
+
+button#backup-btn:active:not(:disabled) {
+    transform: translateY(1px); /* Se hunde al hacer clic */
+}
+/* Apagar el resplandor y efectos cuando está deshabilitado */
+button#backup-btn:disabled {
+    background-color: #444 !important;
+    box-shadow: none !important; /* Adiós a la luz azul */
+    color: #888 !important;
+    cursor: not-allowed !important;
+    transform: none !important; /* Evita que se mueva si intentan darle clic */
+}
 .backup-icon {
     display: inline-flex;
-    flex: 0 0 24px;
+    flex: 0 0 28px;
     align-items: center;
     justify-content: center;
 }
@@ -282,23 +320,23 @@ button.cancel-backup:hover {
     stroke: currentColor;
     stroke-linecap: round;
     stroke-linejoin: round;
-    stroke-width: 1.8;
+    stroke-width: 1.5;
 }
 
 .backup-icon-whatsapp {
-    color: #55d98b;
+    color: #66b579;
 }
 
 .backup-icon-telegram {
-    color: #55b9f3;
+    color: #559ec9;
 }
 
 .backup-icon-photos {
-    color: #f0bd62;
+    color: #c49e58;
 }
 
 .backup-icon-downloads {
-    color: #b6a0ff;
+    color: #9c8acc;
 }
 
 .checkmark {
@@ -358,6 +396,7 @@ button.cancel-backup:hover {
 .extra-folders-controls {
     display: flex;
     gap: 10px;
+    align-items: stretch;
 }
 
 #android-folders-list {
@@ -371,10 +410,23 @@ button.cancel-backup:hover {
 }
 
 #btn-add-folder {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
     margin: 0;
     width: auto;
     background-color: #2b8a3e;
     padding: 10px 15px;
+}
+
+#btn-add-folder svg {
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-width: 2;
 }
 
 #carpetas-apiladas {
@@ -396,15 +448,50 @@ button.cancel-backup:hover {
     color: #ddd;
 }
 
-.folder-badge .quitar {
-    color: #ff6b6b;
-    font-weight: bold;
-    cursor: pointer;
-    padding: 0 4px;
+.folder-badge-icon {
+    display: inline-flex;
+    flex: 0 0 18px;
+    align-items: center;
+    justify-content: center;
+    color: #aaa;
 }
 
-.folder-badge .quitar:hover {
+.folder-badge-icon svg {
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.8;
+}
+
+.folder-badge button.quitar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #ff6b6b;
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    margin: 0 -6px 0 0;
+    padding: 4px;
+    width: 24px;
+    height: 24px;
+}
+
+.folder-badge .quitar svg {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-width: 2;
+}
+
+.folder-badge button.quitar:hover {
     color: #ff3b3b;
+    background: #ffffff12;
 }
 
 body.backup-running .folder-badge .quitar {
@@ -621,11 +708,32 @@ body.backup-running .folder-badge .quitar {
 }
 
 .backup-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
     padding: 12px 15px;
     border-bottom: 1px solid #333;
     cursor: pointer;
     word-break: break-all;
     transition: background-color 0.2s;
+}
+
+.backup-item-icon {
+    display: inline-flex;
+    flex: 0 0 20px;
+    align-items: center;
+    justify-content: center;
+    color: #b6a0ff;
+}
+
+.backup-item-icon svg {
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.8;
 }
 
 .backup-item:hover {
@@ -659,4 +767,37 @@ body.backup-running .backup-item {
 #status.status-warning {
     color: #e0a030;
     font-weight: bold;
+}
+/* Agrega esto en cualquier parte de tu styles.css */
+
+input[type="text"], select {
+    background-color: #1a1a1a !important; /* Más oscuro que la tarjeta */
+    border: 1px solid #444 !important;
+    border-radius: 6px !important;
+    padding: 12px 14px !important;
+    color: #eee !important;
+    font-size: 14px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); /* Sombra interior */
+}
+
+input[type="text"]:focus, select:focus {
+    border-color: #0078D7 !important;
+    outline: none;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.1), 0 0 0 2px rgba(0, 120, 215, 0.2);
+}
+
+/* Estilizar el scrollbar del select (opcional para Webkit) */
+::-webkit-scrollbar {
+    width: 8px;
+}
+::-webkit-scrollbar-track {
+    background: #1e1e1e; 
+}
+::-webkit-scrollbar-thumb {
+    background: #555; 
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #777; 
 }
