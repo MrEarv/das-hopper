@@ -22,6 +22,12 @@ const tabRestore = document.getElementById('tab-restore');
 const vistaBackup = document.getElementById('vista-backup');
 const vistaRestore = document.getElementById('vista-restore');
 const listaRespaldos = document.getElementById('lista-respaldos');
+const deleteBackupButton = document.getElementById('delete-backup-btn');
+const confirmModal = document.getElementById('confirm-modal');
+const confirmModalTitle = document.getElementById('confirm-modal-title');
+const confirmModalMessage = document.getElementById('confirm-modal-message');
+const confirmModalCancel = document.getElementById('confirm-modal-cancel');
+const confirmModalAccept = document.getElementById('confirm-modal-accept');
 
 const btnAddFolder = document.getElementById('btn-add-folder');
 const contenedorApiladas = document.getElementById('carpetas-apiladas');
@@ -99,6 +105,8 @@ function actualizarBoton() {
 
 function bloquearControles(bloquear) {
     document.body.classList.toggle('backup-running', bloquear);
+    document.body.classList.toggle('is-backing-up', bloquear && operacionEnCurso === 'backup');
+    document.body.classList.toggle('is-restoring', bloquear && operacionEnCurso === 'restore');
 
     if (bloquear) {
         estadosControlesPrevios = new Map();
@@ -135,6 +143,57 @@ function crearMensajeLista(texto, clase = '') {
     p.textContent = texto;
     return p;
 }
+
+let resolverConfirmacion = null;
+let elementoPrevioAlModal = null;
+
+function cerrarModalConfirmacion(confirmado) {
+    if (!resolverConfirmacion) return;
+    const resolver = resolverConfirmacion;
+    resolverConfirmacion = null;
+    confirmModal.hidden = true;
+    if (elementoPrevioAlModal?.isConnected) elementoPrevioAlModal.focus();
+    elementoPrevioAlModal = null;
+    resolver(confirmado);
+}
+
+function mostrarModalConfirmacion({ titulo, mensaje, textoAceptar, peligro = false }) {
+    if (resolverConfirmacion) return Promise.resolve(false);
+
+    elementoPrevioAlModal = document.activeElement;
+    confirmModalTitle.textContent = titulo;
+    confirmModalMessage.textContent = mensaje;
+    confirmModalAccept.textContent = textoAceptar;
+    confirmModalAccept.classList.toggle('danger-action', peligro);
+    confirmModal.hidden = false;
+
+    return new Promise((resolve) => {
+        resolverConfirmacion = resolve;
+        confirmModalCancel.focus();
+    });
+}
+
+confirmModalCancel.addEventListener('click', () => cerrarModalConfirmacion(false));
+confirmModalAccept.addEventListener('click', () => cerrarModalConfirmacion(true));
+confirmModal.addEventListener('click', (event) => {
+    if (event.target === confirmModal) cerrarModalConfirmacion(false);
+});
+document.addEventListener('keydown', (event) => {
+    if (confirmModal.hidden) return;
+    if (event.key === 'Escape') {
+        cerrarModalConfirmacion(false);
+    } else if (event.key === 'Tab') {
+        const botones = [confirmModalCancel, confirmModalAccept];
+        const indiceActual = botones.indexOf(document.activeElement);
+        if (event.shiftKey && indiceActual <= 0) {
+            event.preventDefault();
+            confirmModalAccept.focus();
+        } else if (!event.shiftKey && indiceActual === botones.length - 1) {
+            event.preventDefault();
+            confirmModalCancel.focus();
+        }
+    }
+});
 
 // ---------------------------------------------------------------------------
 // Ubicación del respaldo
@@ -244,7 +303,7 @@ ipcRenderer.on('estado-dispositivo', (event, data) => {
     if (data.conectado) {
         dispositivoIdActual = String(data.id || '');
         phoneCard.classList.add('device-connected');
-        deviceStatus.innerText = `📱 Conectado: ${data.id}`;
+        deviceStatus.innerText = `Conectado: ${data.nombre || data.id}`;
         deviceStatus.classList.add('success');
 
         if (!operacionEnCurso) setStatus('Dispositivo detectado. Listo para operar.', 'success');
@@ -252,7 +311,7 @@ ipcRenderer.on('estado-dispositivo', (event, data) => {
     } else {
         dispositivoIdActual = '';
         phoneCard.classList.remove('device-connected');
-        deviceStatus.innerText = 'Estado: Buscando dispositivo...';
+        deviceStatus.innerText = 'Buscando dispositivo...';
         deviceStatus.classList.remove('success');
 
         if (!operacionEnCurso) {
@@ -302,6 +361,7 @@ tabRestore.addEventListener('click', () => cambiarModo('restore'));
 async function cargarListaRespaldos() {
     respaldoSeleccionado = ''; // evita restaurar una selección que ya no se ve
     backupNameInput.value = '';
+    deleteBackupButton.disabled = true;
     const carpetaBase = backupPathInput.value;
 
     if (!carpetaBase) {
@@ -355,11 +415,44 @@ async function cargarListaRespaldos() {
             item.classList.add('selected');
             respaldoSeleccionado = nombreRespaldo;
             backupNameInput.value = nombreRespaldo;
+            deleteBackupButton.disabled = false;
         });
 
         listaRespaldos.appendChild(item);
     });
 }
+
+deleteBackupButton.addEventListener('click', async () => {
+    if (operacionEnCurso || !respaldoSeleccionado) return;
+
+    const nombreRespaldo = respaldoSeleccionado;
+    const confirmado = await mostrarModalConfirmacion({
+        titulo: 'Eliminar respaldo',
+        mensaje: `¿Eliminar "${nombreRespaldo}" permanentemente? Esta acción no se puede deshacer.`,
+        textoAceptar: 'Eliminar',
+        peligro: true
+    });
+    if (!confirmado) return;
+
+    deleteBackupButton.disabled = true;
+    try {
+        const respuesta = await ipcRenderer.invoke('delete-backup', {
+            carpetaBase: backupPathInput.value,
+            nombreRespaldo
+        });
+        if (!respuesta.success) {
+            setStatus(respuesta.msg, 'error');
+            deleteBackupButton.disabled = false;
+            return;
+        }
+
+        setStatus('Respaldo eliminado.', 'success');
+        await cargarListaRespaldos();
+    } catch (error) {
+        setStatus(`No se pudo eliminar el respaldo: ${error.message}`, 'error');
+        deleteBackupButton.disabled = false;
+    }
+});
 
 // ---------------------------------------------------------------------------
 // Ejecución de operaciones
@@ -480,6 +573,35 @@ async function iniciarRespaldo() {
     backupNameInput.value = nombreBackup;
     selecciones.backupName = nombreBackup;
 
+    let actualizarExistente = false;
+    try {
+        const comprobacion = await ipcRenderer.invoke('check-backup-target', {
+            carpetaBase: carpetaDestino,
+            nombreBackup
+        });
+        if (!comprobacion.success) {
+            setStatus(comprobacion.msg, 'error');
+            return;
+        }
+
+        if (comprobacion.exists) {
+            actualizarExistente = await mostrarModalConfirmacion({
+                titulo: '¿Actualizar respaldo existente?',
+                mensaje: `Ya existe un respaldo llamado "${nombreBackup}". Si decides continuar:
+                    \n - Los archivos modificados reemplazarán a sus versiones antiguas.
+                    \n - El resto de los archivos originales se conservarán intactos.
+                    \n¿Deseas fusionar los datos?`,
+                textoAceptar: 'Fusionar y Actualizar'
+            });
+            if (!actualizarExistente) return;
+        }
+    } catch (error) {
+        setStatus(`No se pudo comprobar si el respaldo ya existe: ${error.message}`, 'error');
+        return;
+    }
+
+    selecciones.actualizarExistente = actualizarExistente;
+
     await ejecutarOperacionUI({
         tipo: 'backup',
         canal: 'start-backup',
@@ -499,10 +621,11 @@ async function iniciarRestauracion() {
         return;
     }
 
-    const confirmado = window.confirm(
-        `Se copiarán al teléfono los archivos de "${respaldoSeleccionado}".\n` +
-        'Los archivos que ya existan con el mismo nombre serán sobrescritos.\n\n¿Continuar?'
-    );
+    const confirmado = await mostrarModalConfirmacion({
+        titulo: 'Restauración inteligente',
+        mensaje: `Vamos a restaurar "${respaldoSeleccionado}" en tu dispositivo.\nPara ahorrar tiempo, tus fotos y descargas se sincronizarán (solo se enviará lo que falte). Sin embargo, carpetas críticas como WhatsApp sobrescribirán tu estado actual para regresar exactamente a la fecha del respaldo.\n¿Deseas iniciar?`,
+        textoAceptar: 'iniciar restauración'
+    });
     if (!confirmado) return;
 
     await ejecutarOperacionUI({
@@ -554,7 +677,7 @@ ipcRenderer.on('backup-progress', (event, u) => {
             break;
 
         case 'progress':
-            setProgress(u.percent, `${Math.floor(u.percent)}% completado · ${textoTarea(u)}`, true);
+            setProgress(Number(u.percent), `${Number(u.percent).toFixed(1)}% completado · ${textoTarea(u)}`, true);
             if (u.file) progresoTexto.innerText = `${nombreArchivo(u.file)} (${u.filePercent}%)`;
             break;
 

@@ -84,6 +84,17 @@ function formatearBytes(bytes) {
 }
 
 const porcentaje = (hecho, total) => (total > 0 ? Math.max(0, Math.min(100, (hecho / total) * 100)) : 0);
+const claveRutaLocal = (ruta) => path.resolve(ruta).toLowerCase();
+
+function nombreBackupValido(nombreBackup) {
+    return Boolean(
+        nombreBackup &&
+        nombreBackup.length <= 100 &&
+        !/[<>:"/\\|?*\x00-\x1f]/.test(nombreBackup) &&
+        !/[. ]$/.test(nombreBackup) &&
+        !/^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(?:\..*)?$/i.test(nombreBackup)
+    );
+}
 
 function cancelarOperacionActiva(op) {
     op.cancelado = true;
@@ -125,6 +136,20 @@ function elegirDispositivo(lista) {
     if (listo) return { id: listo.id, estado: 'device' };
     if (lista.length > 0) return { id: null, estado: lista[0].estado };
     return { id: null, estado: 'none' };
+}
+
+async function obtenerNombreDispositivo(serial) {
+    const resultado = await ejecutarAdb(
+        serial,
+        ['shell', 'getprop ro.product.marketname; getprop ro.product.manufacturer; getprop ro.product.model'],
+        { timeout: 8000 }
+    );
+    if (!resultado.ok) return serial;
+
+    const [nombreComercial, fabricante, modelo] = resultado.stdout
+        .split(/\r?\n/)
+        .map((valor) => valor.trim());
+    return nombreComercial || [fabricante, modelo].filter(Boolean).join(' ') || serial;
 }
 
 function crearEmisor(event) {
@@ -173,9 +198,13 @@ function iniciarMonitorADB(win) {
             const clave = `${sel.id}|${sel.estado}`;
             if (clave !== ultimaClave && !win.isDestroyed()) {
                 ultimaClave = clave;
+                const nombre = sel.id ? await obtenerNombreDispositivo(sel.id) : null;
+                if (win.isDestroyed()) return;
                 win.webContents.send(
                     'estado-dispositivo',
-                    sel.id ? { conectado: true, id: sel.id } : { conectado: false, estado: sel.estado }
+                    sel.id
+                        ? { conectado: true, id: sel.id, nombre }
+                        : { conectado: false, estado: sel.estado }
                 );
             }
         } finally {
@@ -216,6 +245,53 @@ ipcMain.handle('get-backups-list', async (event, carpetaBase) => {
         return { success: true, respaldos: carpetas.map((c) => c.nombre) };
     } catch (error) {
         return { success: false, msg: error.message };
+    }
+});
+
+ipcMain.handle('check-backup-target', async (event, datos) => {
+    const carpetaBase = typeof datos?.carpetaBase === 'string' ? datos.carpetaBase.trim() : '';
+    const nombreBackup = typeof datos?.nombreBackup === 'string' ? datos.nombreBackup.trim() : '';
+    if (!carpetaBase || !path.isAbsolute(carpetaBase) || !nombreBackupValido(nombreBackup)) {
+        return { success: false, msg: 'La ubicación o el nombre del respaldo no son válidos.' };
+    }
+
+    try {
+        const info = await fs.lstat(path.join(carpetaBase, nombreBackup));
+        if (!info.isDirectory() || info.isSymbolicLink()) {
+            return { success: false, msg: 'Ya existe un elemento con ese nombre que no es una carpeta de respaldo.' };
+        }
+        return { success: true, exists: true };
+    } catch (error) {
+        if (error.code === 'ENOENT') return { success: true, exists: false };
+        return { success: false, msg: `No se pudo comprobar el respaldo existente: ${error.message}` };
+    }
+});
+
+ipcMain.handle('delete-backup', async (event, datos) => {
+    try {
+        const carpetaBase = typeof datos?.carpetaBase === 'string' ? datos.carpetaBase : '';
+        const nombreRespaldo = typeof datos?.nombreRespaldo === 'string' ? datos.nombreRespaldo : '';
+        if (!carpetaBase || !path.isAbsolute(carpetaBase) ||
+            !nombreRespaldo || path.basename(nombreRespaldo) !== nombreRespaldo ||
+            nombreRespaldo === '.' || nombreRespaldo === '..') {
+            return { success: false, msg: 'La ruta del respaldo no es válida.' };
+        }
+
+        const baseResuelta = path.resolve(carpetaBase);
+        const respaldoResuelto = path.resolve(baseResuelta, nombreRespaldo);
+        if (path.dirname(respaldoResuelto) !== baseResuelta) {
+            return { success: false, msg: 'El respaldo debe estar directamente dentro de la ubicación seleccionada.' };
+        }
+
+        const info = await fs.lstat(respaldoResuelto);
+        if (!info.isDirectory() || info.isSymbolicLink()) {
+            return { success: false, msg: 'El elemento seleccionado no es una carpeta de respaldo válida.' };
+        }
+
+        await fs.rm(respaldoResuelto, { recursive: true });
+        return { success: true };
+    } catch (error) {
+        return { success: false, msg: `No se pudo eliminar el respaldo: ${error.message}` };
     }
 });
 
@@ -282,11 +358,13 @@ ipcMain.handle('cancel-operation', (event) => {
 // ---------------------------------------------------------------------------
 // Transferencia ADB (pull / push) con lectura de progreso
 // ---------------------------------------------------------------------------
-function transferirADB(serial, accion, origen, destino, op, { onArchivo, onTexto } = {}) {
+function transferirADB(serial, accion, origen, destino, op, { onArchivo, onTexto, usarSync = false } = {}) {
     return new Promise((resolve, reject) => {
         const args = accion === 'pull'
             ? ['-s', serial, 'pull', '-a', origen, destino]
-            : ['-s', serial, 'push', origen, destino];
+            : usarSync
+                ? ['-s', serial, 'push', '--sync', origen, destino]
+                : ['-s', serial, 'push', origen, destino];
 
         const proc = spawn(adbPath, args, { windowsHide: true });
         op.proceso = proc;
@@ -340,21 +418,32 @@ function transferirADB(serial, accion, origen, destino, op, { onArchivo, onTexto
     });
 }
 
-async function transferirConProgreso({ serial, accion, origen, destino, tarea, indice, total, baseKB, totalKB, op, emisor }) {
+async function transferirConProgreso({ serial, accion, origen, destino, tarea, indice, total, baseKB, totalKB, op, emisor, usarSync }) {
     const info = { taskName: tarea.nombre, taskIndex: indice, taskCount: total };
     emisor.enviar({ type: 'task-start', ...info });
     emisor.enviar({ type: 'progress', percent: porcentaje(baseKB, totalKB), ...info });
 
     let archivosVistos = 0;
     let archivoActual = '';
+    let bytesCompletados = 0;
+    let bytesArchivoActual = 0;
 
     const resultado = await transferirADB(serial, accion, origen, destino, op, {
         onArchivo: ({ pct, archivo }) => {
             if (archivo !== archivoActual) {
+                if (archivoActual && bytesArchivoActual > 0) bytesCompletados += bytesArchivoActual;
                 archivoActual = archivo;
                 archivosVistos++;
+                bytesArchivoActual = 0;
+                if (accion === 'push' && tarea.bytesPorRuta instanceof Map) {
+                    const separador = archivo.lastIndexOf(' to ');
+                    const rutaLocal = separador >= 0 ? archivo.slice(0, separador) : archivo;
+                    bytesArchivoActual = tarea.bytesPorRuta.get(claveRutaLocal(rutaLocal.trim())) || 0;
+                }
             }
-            const fraccion = Math.min(1, (archivosVistos - 1 + pct / 100) / tarea.totalArchivos);
+            const fraccion = bytesArchivoActual > 0 && tarea.bytes > 0
+                ? Math.min(1, (bytesCompletados + bytesArchivoActual * pct / 100) / tarea.bytes)
+                : Math.min(1, (archivosVistos - 1 + pct / 100) / tarea.totalArchivos);
             emisor.progreso({
                 percent: porcentaje(baseKB + tarea.pesoKB * fraccion, totalKB),
                 file: archivo,
@@ -362,7 +451,8 @@ async function transferirConProgreso({ serial, accion, origen, destino, tarea, i
                 ...info
             });
         },
-        onTexto: (linea) => emisor.enviar({ type: 'log', text: linea })
+        onTexto: (linea) => emisor.enviar({ type: 'log', text: linea }),
+        usarSync
     });
 
     if (resultado.cancelado) return resultado;
@@ -402,13 +492,7 @@ async function ejecutarRespaldo(event, selecciones, op) {
     const nombreBackup = typeof selecciones.backupName === 'string' ? selecciones.backupName.trim() : '';
     const carpetaBase = typeof selecciones.destinationPath === 'string' ? selecciones.destinationPath.trim() : '';
 
-    if (
-        !nombreBackup ||
-        nombreBackup.length > 100 ||
-        /[<>:"/\\|?*\x00-\x1f]/.test(nombreBackup) ||
-        /[. ]$/.test(nombreBackup) ||
-        /^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(?:\..*)?$/i.test(nombreBackup)
-    ) {
+    if (!nombreBackupValido(nombreBackup)) {
         return { success: false, msg: 'El nombre del backup está vacío o contiene caracteres no válidos.' };
     }
 
@@ -423,11 +507,20 @@ async function ejecutarRespaldo(event, selecciones, op) {
 
     const carpetaDestinoPC = path.join(carpetaBase, nombreBackup);
 
-    // Evita mezclar un respaldo nuevo con uno existente
+    // Solo combina con un respaldo existente tras la confirmación de la interfaz.
     try {
-        await fs.access(carpetaDestinoPC);
-        return { success: false, msg: 'Ya existe un respaldo con ese nombre. Elige otro nombre.' };
-    } catch (e) { /* no existe: correcto */ }
+        const info = await fs.lstat(carpetaDestinoPC);
+        if (!info.isDirectory() || info.isSymbolicLink()) {
+            return { success: false, msg: 'Ya existe un elemento con ese nombre que no es una carpeta de respaldo.' };
+        }
+        if (selecciones.actualizarExistente !== true) {
+            return { success: false, msg: 'Ya existe un respaldo con ese nombre. Confirma si deseas actualizarlo.' };
+        }
+    } catch (error) {
+        if (error.code !== 'ENOENT') {
+            return { success: false, msg: `No se pudo comprobar el respaldo existente: ${error.message}` };
+        }
+    }
 
     // ---- Construcción de tareas ----
     let tareas = [];
@@ -564,9 +657,10 @@ async function ejecutarRespaldo(event, selecciones, op) {
 // ---------------------------------------------------------------------------
 // RESTAURACIÓN (PC -> Android)
 // ---------------------------------------------------------------------------
-async function medirCarpeta(ruta, op) {
+async function medirCarpeta(ruta, op, mapearRutas = false) {
     let bytes = 0;
     let archivos = 0;
+    const bytesPorRuta = mapearRutas ? new Map() : null;
     const pila = [ruta];
     while (pila.length && !op.cancelado) {
         const actual = pila.pop();
@@ -582,13 +676,15 @@ async function medirCarpeta(ruta, op) {
                 pila.push(completa);
             } else if (entrada.isFile()) {
                 try {
-                    bytes += (await fs.stat(completa)).size;
+                    const tamano = (await fs.stat(completa)).size;
+                    bytes += tamano;
                     archivos++;
+                    if (bytesPorRuta) bytesPorRuta.set(claveRutaLocal(completa), tamano);
                 } catch (e) { /* ignorar */ }
             }
         }
     }
-    return { bytes, archivos };
+    return { bytes, archivos, bytesPorRuta };
 }
 
 async function ejecutarRestauracion(event, datos, op) {
@@ -617,11 +713,12 @@ async function ejecutarRestauracion(event, datos, op) {
         if (op.cancelado) return RESULTADO_CANCELADO();
         emisor.enviar({ type: 'prepare', text: `Analizando ${carpeta.name}...` });
         const ruta = path.join(rutaRespaldoPC, carpeta.name);
-        const medida = await medirCarpeta(ruta, op);
+        const medida = await medirCarpeta(ruta, op, true);
         tareas.push({
             nombre: carpeta.name,
             ruta,
             bytes: medida.bytes,
+            bytesPorRuta: medida.bytesPorRuta,
             pesoKB: Math.max(1, Math.ceil(medida.bytes / 1024)),
             totalArchivos: Math.max(1, medida.archivos)
         });
@@ -638,6 +735,8 @@ async function ejecutarRestauracion(event, datos, op) {
     let hechosKB = 0;
     for (const [indice, tarea] of tareas.entries()) {
         if (op.cancelado) return RESULTADO_CANCELADO();
+        const esCarpetaAndroid = tarea.nombre === 'Android';
+        const aplicarSincronizacion = !esCarpetaAndroid;
         try {
             const resultado = await transferirConProgreso({
                 serial,
@@ -650,7 +749,8 @@ async function ejecutarRestauracion(event, datos, op) {
                 baseKB: hechosKB,
                 totalKB,
                 op,
-                emisor
+                emisor,
+                usarSync: aplicarSincronizacion 
             });
             if (resultado.cancelado) return RESULTADO_CANCELADO();
             if (resultado.parcial) {

@@ -91,13 +91,21 @@
                 <div id="lista-respaldos" class="lista-respaldos">
                     <p class="lista-mensaje">Buscando respaldos...</p>
                 </div>
+                <div class="backup-list-actions">
+                    <button id="delete-backup-btn" type="button" class="danger-action" disabled>
+                        <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+                            <path d="M4 7h16M10 11v6M14 11v6M5 7l1 14h12l1-14M9 7V4h6v3"></path>
+                        </svg>
+                        <span>Eliminar respaldo</span>
+                    </button>
+                </div>
             </div>
             <p id="backup-status" aria-live="polite"></p>
         </div>
         
         <div class="card" id="celular_status">
             <div id="celular-info">
-                <h3 id="device-status">Estado: Buscando dispositivo...</h3>
+                <h3 id="device-status">Buscando dispositivo...</h3>
                 <div class="phone-illustration" aria-hidden="true">
                     <div class="phone-screen">
                         <div class="phone-camera"></div>
@@ -133,6 +141,17 @@
             <p id="progress-text" aria-live="polite">Esperando inicio...</p>
         </div>
 
+    </div>
+
+    <div id="confirm-modal" class="modal-backdrop" hidden>
+        <section class="confirm-modal" role="dialog" aria-modal="true" aria-labelledby="confirm-modal-title" aria-describedby="confirm-modal-message">
+            <h2 id="confirm-modal-title"></h2>
+            <p id="confirm-modal-message"></p>
+            <div class="confirm-modal-actions">
+                <button id="confirm-modal-cancel" type="button" class="modal-cancel">Cancelar</button>
+                <button id="confirm-modal-accept" type="button">Continuar</button>
+            </div>
+        </section>
     </div>
 
     <script src="./renderer.js"></script>

@@ -453,7 +453,7 @@ button#backup-btn:disabled {
     flex: 0 0 18px;
     align-items: center;
     justify-content: center;
-    color: #aaa;
+    color: #c8c5af;
 }
 
 .folder-badge-icon svg {
@@ -697,6 +697,44 @@ body.backup-running .folder-badge .quitar {
     text-align: left;
 }
 
+.backup-list-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 10px;
+}
+
+.backup-list-actions button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: auto;
+    margin: 0;
+    padding: 9px 12px;
+}
+
+.backup-list-actions svg {
+    width: 17px;
+    height: 17px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.8;
+}
+
+.danger-action {
+    background: #a83232;
+}
+
+.danger-action:hover {
+    background: #c13d3d;
+}
+
+.backup-list-actions button:disabled {
+    opacity: 0.5;
+}
+
 .lista-mensaje {
     padding: 15px;
     color: #aaa;
@@ -768,6 +806,64 @@ body.backup-running .backup-item {
     color: #e0a030;
     font-weight: bold;
 }
+
+.modal-backdrop {
+    position: fixed;
+    z-index: 10;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: #0009;
+    backdrop-filter: blur(3px);
+}
+
+.confirm-modal {
+    width: min(100%, 420px);
+    padding: 24px;
+    border: 1px solid #555;
+    border-radius: 12px;
+    background: #2d2d2d;
+    box-shadow: 0 18px 55px #0009;
+    text-align: left;
+}
+
+.confirm-modal h2 {
+    margin: 0 0 12px;
+    font-size: 20px;
+}
+
+.confirm-modal p {
+    margin: 0;
+    color: #ccc;
+    line-height: 1.55;
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+}
+
+.confirm-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 24px;
+}
+
+.confirm-modal-actions button {
+    width: auto;
+    min-width: 96px;
+    margin: 0;
+    padding: 10px 16px;
+}
+
+.confirm-modal-actions .modal-cancel {
+    border: 1px solid #666;
+    background: #383838;
+}
+
+.confirm-modal-actions .modal-cancel:hover {
+    background: #484848;
+}
 /* Agrega esto en cualquier parte de tu styles.css */
 
 input[type="text"], select {
@@ -800,4 +896,60 @@ input[type="text"]:focus, select:focus {
 }
 ::-webkit-scrollbar-thumb:hover {
     background: #777; 
+}
+/* --- ANIMACIÓN PARA RESPALDO (Latido Ámbar) --- */
+@keyframes android-pulse-backup {
+    0%, 100% { 
+        color: #55d98b; /* Verde original */
+        transform: translate(-50%, -50%) scale(1); 
+    }
+    50% { 
+        color: #ffbd59; /* Naranja haciendo juego con el borde */
+        transform: translate(-50%, -50%) scale(1.08); 
+    }
+}
+
+body.is-backing-up .phone-android-icon {
+    animation: android-pulse-backup 1.5s ease-in-out infinite;
+}
+
+/* --- ANIMACIÓN PARA RESTAURACIÓN (Inyección Verde Brillante) --- */
+@keyframes android-pulse-restore {
+    0%, 100% { 
+        color: #55d98b; 
+        transform: translate(-50%, -50%) scale(0.95); 
+        opacity: 0.7;
+    }
+    50% { 
+        color: #20dfff; /* Azul/Cyan intenso brillante */
+        transform: translate(-50%, -50%) scale(1.15); 
+        opacity: 1;
+        filter: drop-shadow(0 0 8px rgba(32, 223, 255, 0.6)); /* Efecto holográfico */
+    }
+}
+
+body.is-restoring .phone-android-icon {
+    animation: android-pulse-restore 1.2s cubic-bezier(0.25, 0.8, 0.25, 1) infinite;
+}
+/* --- BOTÓN MODO CANCELAR (Rojo) --- */
+button.cancel-backup {
+    background-color: #b83b3b !important;
+    box-shadow: 0 4px 12px rgba(184, 59, 59, 0.4) !important; /* Resplandor rojo */
+}
+
+button.cancel-backup:hover {
+    background-color: #922d2d !important;
+    box-shadow: 0 6px 16px rgba(184, 59, 59, 0.5) !important;
+}
+
+
+/* --- BOTÓN MODO RESTAURAR (Verde) --- */
+#backup-btn.restore-mode {
+    background-color: #2b8a3e;
+    box-shadow: 0 4px 12px rgba(43, 138, 62, 0.4); /* Resplandor verde */
+}
+
+#backup-btn.restore-mode:hover:not(:disabled) {
+    background-color: #237032;
+    box-shadow: 0 6px 16px rgba(43, 138, 62, 0.5);
 }
