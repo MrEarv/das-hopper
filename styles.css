@@ -1,7 +1,47 @@
+/* =========================================
+   1. VARIABLES (PALETA DE COLORES)
+   ========================================= */
+:root {
+    /* Fondos y superficies */
+    --color-fondo: #10161a;
+    --color-tarjeta: #182126;
+    --color-tarjeta-hover: #1e2b32; /* Para hovers en listas y opciones */
+    --color-tarjeta-activa: #132b20; /* Tinte verde oscuro para checkboxes marcados */
+    
+    /* Bordes y líneas */
+    --color-borde: #2c3a41;
+    --color-borde-hover: #3d5059;
+
+    /* Acento Principal (Verde Android - Respaldar) */
+    --color-acento: #3ddc84;
+    --color-acento-rgb: 61, 220, 132;
+    --color-acento-hover: #32b86e;
+
+    /* Secundario (Cian - Restaurar) */
+    --color-secundario: #35c8e8;
+    --color-secundario-rgb: 53, 200, 232;
+    --color-secundario-hover: #2ba5c2;
+
+    /* Estados (Peligro y Advertencia) */
+    --color-warning: #ffbd59;
+    --color-warning-rgb: 255, 189, 89;
+    
+    --color-peligro: #b83b3b;
+    --color-peligro-rgb: 184, 59, 59;
+    --color-peligro-hover: #922d2d;
+
+    /* Textos base */
+    --texto-blanco: #ffffff;
+    --texto-gris: #aaaaaa;
+}
+
+/* =========================================
+   2. LAYOUT GLOBAL
+   ========================================= */
 body {
     font-family: 'Verdana', Tahoma, Geneva, sans-serif;
-    background-color: #1e1e1e;
-    color: white;
+    background-color: var(--color-fondo);
+    color: var(--texto-blanco);
     user-select: none;
     padding: 12px 20px 28px;
     text-align: center;
@@ -18,9 +58,7 @@ html {
     overflow: hidden;
 }
 
-input,
-select,
-textarea {
+input, select, textarea {
     user-select: text;
 }
 
@@ -36,51 +74,40 @@ h1 {
     gap: 20px;
 }
 
-#opciones_panel,
-#celular_status {
-    min-height: 0;
-}
-
-#opciones_panel {
-    overflow: hidden;
-}
-
-#celular_status {
-    overflow: hidden;
-}
-
-#opciones_panel,
-#celular_status {
-    flex-shrink: 1;
-}
-
 .container:not(#progress-container) {
     flex: 1 1 0;
     min-height: 0;
     align-items: stretch;
 }
 
+[hidden] {
+    display: none !important;
+}
+
+/* =========================================
+   3. PANELES Y TARJETAS
+   ========================================= */
 .card {
-    background-color: #2d2d2d;
+    background-color: var(--color-tarjeta);
     padding: 14px;
     border-radius: 8px;
     margin-top: 12px;
 }
 
-#opciones_panel {
-    flex: 2;
+#opciones_panel, #celular_status {
+    min-height: 0;
+    overflow: hidden;
+    flex-shrink: 1;
 }
 
-#celular_status {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-}
+#opciones_panel { flex: 2; }
+#celular_status { display: flex; flex-direction: column; flex: 1; }
+#celular-info { flex: 4; }
+#opciones { flex: 1; }
 
-#celular-info {
-    flex: 4;
-}
-
+/* =========================================
+   4. ILUSTRACIÓN DEL TELÉFONO
+   ========================================= */
 .phone-illustration {
     position: relative;
     isolation: isolate;
@@ -89,10 +116,10 @@ h1 {
     margin: 0 auto 10px;
     padding: 7px;
     box-sizing: border-box;
-    background: linear-gradient(135deg, #b9c2d0, #4d5668 45%, #202735);
-    border: 2px solid #d9e0eb;
+    background: linear-gradient(135deg, var(--color-borde-hover), var(--color-borde) 45%, var(--color-fondo));
+    border: 2px solid var(--color-borde-hover);
     border-radius: 22px;
-    box-shadow: 0 10px 24px #0008, inset 0 0 0 2px #151923;
+    box-shadow: 0 10px 24px rgba(0,0,0,0.5), inset 0 0 0 2px var(--color-fondo);
 }
 
 .phone-screen {
@@ -101,7 +128,7 @@ h1 {
     height: 100%;
     overflow: hidden;
     border-radius: 14px;
-    background: linear-gradient(155deg, #183c39 0%, #132c30 55%, #202735 100%);
+    background: linear-gradient(155deg, #1b382d 0%, var(--color-tarjeta) 55%, var(--color-fondo) 100%);
 }
 
 .phone-camera {
@@ -112,28 +139,8 @@ h1 {
     width: 5px;
     height: 5px;
     border-radius: 50%;
-    background: #17202d;
+    background: var(--color-fondo);
     transform: translateX(-50%);
-}
-
-.phone-android-icon {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 48px;
-    height: 58px;
-    fill: none;
-    color: #55d98b;
-    stroke: currentColor;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    stroke-width: 2;
-    transform: translate(-50%, -50%);
-}
-
-.phone-android-icon circle {
-    fill: currentColor;
-    stroke: none;
 }
 
 .phone-home-indicator {
@@ -144,97 +151,64 @@ h1 {
     width: 34px;
     height: 3px;
     border-radius: 3px;
-    background: #ffffffcc;
+    background: rgba(255, 255, 255, 0.8);
     transform: translateX(-50%);
 }
 
+/* Resplandor cuando hay conexión (Base - Cian) */
 #celular_status.device-connected .phone-illustration::before {
     position: absolute;
     z-index: -1;
     inset: -5px;
-    border: 2px solid #55f2ff;
+    border: 2px solid var(--color-secundario);
     border-radius: 26px;
-    box-shadow: 0 0 10px #55f2ff, 0 0 24px #20dfff, 0 0 42px #20dfff99;
+    box-shadow: 0 0 10px var(--color-secundario), 0 0 24px rgba(var(--color-secundario-rgb), 0.8), 0 0 42px rgba(var(--color-secundario-rgb), 0.6);
     content: "";
     animation: phone-glow 1.8s ease-in-out infinite;
 }
 
 @keyframes phone-glow {
-    0%, 100% {
-        opacity: 0.55;
-        box-shadow: 0 0 8px #55f2ff, 0 0 18px #20dfff, 0 0 32px #20dfff88;
-    }
-    50% {
-        opacity: 1;
-        box-shadow: 0 0 13px #55f2ff, 0 0 30px #20dfff, 0 0 48px #20dfffcc;
-    }
+    0%, 100% { opacity: 0.55; box-shadow: 0 0 8px var(--color-secundario), 0 0 18px rgba(var(--color-secundario-rgb), 0.8), 0 0 32px rgba(var(--color-secundario-rgb), 0.5); }
+    50% { opacity: 1; box-shadow: 0 0 13px var(--color-secundario), 0 0 30px rgba(var(--color-secundario-rgb), 0.9), 0 0 48px rgba(var(--color-secundario-rgb), 0.8); }
 }
 
+/* Resplandor general de operaciones (Ámbar) */
 body.backup-running #celular_status.device-connected .phone-illustration::before {
-    border-color: #ffbd59;
-    box-shadow: 0 0 10px #ffbd59, 0 0 24px #ff9f43, 0 0 42px #ff9f4399;
+    border-color: var(--color-warning);
+    box-shadow: 0 0 10px var(--color-warning), 0 0 24px rgba(var(--color-warning-rgb), 0.9), 0 0 42px rgba(var(--color-warning-rgb), 0.6);
     animation: none;
     opacity: 1;
 }
 
-#opciones {
+/* =========================================
+   5. PESTAÑAS (TABS)
+   ========================================= */
+.tab-bar {
+    display: flex;
+    margin-bottom: 15px;
+    border-bottom: 1px solid var(--color-borde);
+}
+
+.tab {
     flex: 1;
-}
-
-button {
-    background-color: #0078D7;
-    color: white;
+    width: 100%;
+    margin: 0;
+    padding: 10px;
+    background: transparent;
     border: none;
-    padding: 15px 30px;
-    font-size: 16px;
-    border-radius: 5px;
-    cursor: pointer;
-    margin: 10px;
-    width: 80%;
+    border-bottom: 2px solid transparent;
+    border-radius: 0;
+    color: var(--texto-gris);
 }
 
-button:hover {
-    background-color: #005A9E;
-}
+.tab:hover { background: var(--color-tarjeta-hover); color: var(--texto-blanco); }
+.tab.active { border-bottom-color: var(--color-acento); color: var(--texto-blanco); font-weight: bold; }
+.tab:disabled { background: transparent; color: var(--color-borde-hover); }
+.tab.active:disabled { color: var(--texto-gris); }
 
-button:disabled {
-    background-color: #555;
-    cursor: not-allowed;
-}
-
-button.cancel-backup {
-    background-color: #b83b3b;
-}
-
-button.cancel-backup:hover {
-    background-color: #922d2d;
-}
-
-#status {
-    margin-top: 15px;
-    color: #aaa;
-    transition: color 160ms ease;
-}
-
-#status.status-info {
-    color: #aaa;
-}
-
-#status.status-success {
-    color: #4CAF50;
-    font-weight: bold;
-}
-
-#status.status-error {
-    color: #ff6b6b;
-    font-weight: bold;
-}
-
-.success {
-    color: #4CAF50 !important;
-    font-weight: bold;
-}
-
+/* =========================================
+   6. OPCIONES DE RESPALDO Y CHECKBOXES
+   ========================================= */
 .backup-options {
     display: grid;
     gap: 8px;
@@ -246,29 +220,24 @@ button.cancel-backup:hover {
     display: flex;
     align-items: center;
     gap: 14px;
-    padding: 12px 16px; /* Más padding vertical para separarlas */
-    border: 1px solid transparent; /* Borde invisible por defecto */
+    padding: 12px 16px;
+    border: 1px solid transparent;
     border-radius: 8px;
-    background-color: #333; /* Un gris un poco más claro que la tarjeta */
+    background-color: var(--color-tarjeta-hover);
     cursor: pointer;
     transition: all 0.2s ease;
 }
 
 .backup-option:hover {
-    background-color: #3a3a3a;
-    border-color: #555;
-}
-
-.backup-option input:checked ~ .checkmark {
-    border-color: #0078D7;
-    background-color: #0078D7;
+    background-color: var(--color-borde);
+    border-color: var(--color-borde-hover);
 }
 
 .backup-option:has(input:checked) {
-    background-color: #2a3a4a; /* Un ligero tinte azul al fondo si está marcado */
-    border-color: #0078D7;
+    background-color: var(--color-tarjeta-activa);
+    border-color: var(--color-acento);
 }
-/* Ocultar de forma absoluta el checkbox nativo */
+
 .backup-option input[type="checkbox"] {
     appearance: none !important;
     -webkit-appearance: none !important;
@@ -278,34 +247,7 @@ button.cancel-backup:hover {
     height: 0 !important;
     pointer-events: none;
 }
-button#backup-btn {
-    font-size: 15px;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-    padding: 14px 24px;
-    margin-top: 15px;
-    width: 100%;
-    border-radius: 6px;
-    box-shadow: 0 4px 12px rgba(0, 120, 215, 0.3); /* Resplandor exterior */
-    transition: all 0.2s ease;
-}
 
-button#backup-btn:hover:not(:disabled) {
-    transform: translateY(-2px); /* Se levanta ligeramente */
-    box-shadow: 0 6px 16px rgba(0, 120, 215, 0.4);
-}
-
-button#backup-btn:active:not(:disabled) {
-    transform: translateY(1px); /* Se hunde al hacer clic */
-}
-/* Apagar el resplandor y efectos cuando está deshabilitado */
-button#backup-btn:disabled {
-    background-color: #444 !important;
-    box-shadow: none !important; /* Adiós a la luz azul */
-    color: #888 !important;
-    cursor: not-allowed !important;
-    transform: none !important; /* Evita que se mueva si intentan darle clic */
-}
 .backup-icon {
     display: inline-flex;
     flex: 0 0 28px;
@@ -323,21 +265,11 @@ button#backup-btn:disabled {
     stroke-width: 1.5;
 }
 
-.backup-icon-whatsapp {
-    color: #66b579;
-}
-
-.backup-icon-telegram {
-    color: #559ec9;
-}
-
-.backup-icon-photos {
-    color: #c49e58;
-}
-
-.backup-icon-downloads {
-    color: #9c8acc;
-}
+/* Reducción de colores sueltos para los íconos */
+.backup-icon-whatsapp { color: var(--color-acento); }
+.backup-icon-telegram { color: var(--color-secundario); }
+.backup-icon-photos   { color: var(--color-warning); }
+.backup-icon-downloads{ color: var(--texto-gris); }
 
 .checkmark {
     display: inline-flex;
@@ -346,9 +278,9 @@ button#backup-btn:disabled {
     justify-content: center;
     width: 20px;
     height: 20px;
-    border: 2px solid #aaa;
+    border: 2px solid var(--color-borde);
     border-radius: 5px;
-    background-color: #2d2d2d;
+    background-color: var(--color-tarjeta);
     transition: background-color 160ms ease, border-color 160ms ease;
     margin-left: auto;
 }
@@ -356,7 +288,7 @@ button#backup-btn:disabled {
 .checkmark::after {
     width: 5px;
     height: 10px;
-    border: solid white;
+    border: solid var(--color-fondo);
     border-width: 0 2px 2px 0;
     content: "";
     opacity: 0;
@@ -365,8 +297,8 @@ button#backup-btn:disabled {
 }
 
 .backup-option input:checked ~ .checkmark {
-    border-color: #0078D7;
-    background-color: #0078D7;
+    border-color: var(--color-acento);
+    background-color: var(--color-acento);
 }
 
 .backup-option input:checked ~ .checkmark::after {
@@ -374,24 +306,21 @@ button#backup-btn:disabled {
     transform: rotate(45deg) scale(1);
 }
 
-.backup-option input:checked ~ .option-text {
-    color: white;
-}
-
 .option-text {
     color: #ddd;
     line-height: 1.4;
 }
 
+/* =========================================
+   7. CARPETAS EXTRA (MODO RESPALDO)
+   ========================================= */
 .extra-folders-section {
     margin-top: 10px;
     padding-top: 10px;
-    border-top: 1px solid #555;
+    border-top: 1px solid var(--color-borde);
 }
 
-.extra-folders-title {
-    margin-bottom: 6px;
-}
+.extra-folders-title { margin-bottom: 6px; }
 
 .extra-folders-controls {
     display: flex;
@@ -402,9 +331,6 @@ button#backup-btn:disabled {
 #android-folders-list {
     flex: 1;
     padding: 10px;
-    background: #2d2d2d;
-    color: white;
-    border: 1px solid #555;
     border-radius: 5px;
     outline: none;
 }
@@ -416,9 +342,12 @@ button#backup-btn:disabled {
     gap: 7px;
     margin: 0;
     width: auto;
-    background-color: #2b8a3e;
+    background-color: var(--color-acento);
+    color: var(--color-fondo);
     padding: 10px 15px;
 }
+
+#btn-add-folder:hover { background-color: var(--color-acento-hover); }
 
 #btn-add-folder svg {
     width: 18px;
@@ -437,8 +366,8 @@ button#backup-btn:disabled {
 }
 
 .folder-badge {
-    background-color: #424242;
-    border: 1px solid #666;
+    background-color: var(--color-tarjeta-hover);
+    border: 1px solid var(--color-borde);
     padding: 6px 12px;
     border-radius: 15px;
     font-size: 14px;
@@ -453,7 +382,7 @@ button#backup-btn:disabled {
     flex: 0 0 18px;
     align-items: center;
     justify-content: center;
-    color: #c8c5af;
+    color: var(--texto-gris);
 }
 
 .folder-badge-icon svg {
@@ -470,7 +399,7 @@ button#backup-btn:disabled {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    color: #ff6b6b;
+    color: var(--color-peligro);
     background: transparent;
     border: 0;
     cursor: pointer;
@@ -489,10 +418,7 @@ button#backup-btn:disabled {
     stroke-width: 2;
 }
 
-.folder-badge button.quitar:hover {
-    color: #ff3b3b;
-    background: #ffffff12;
-}
+.folder-badge button.quitar:hover { color: var(--color-peligro-hover); background: rgba(255,255,255,0.05); }
 
 body.backup-running .folder-badge .quitar {
     pointer-events: none;
@@ -500,41 +426,175 @@ body.backup-running .folder-badge .quitar {
     cursor: not-allowed;
 }
 
-#backup-name {
-    width: 84%;
-    padding: 10px;
-    margin-bottom: 10px;
-    background-color: #2d2d2d;
-    color: white;
-    border: 1px solid #555;
-    border-radius: 5px;
+/* =========================================
+   8. INPUTS MODERNOS Y SCROLLBAR
+   ========================================= */
+input[type="text"], select {
+    background-color: var(--color-fondo) !important;
+    border: 1px solid var(--color-borde) !important;
+    border-radius: 6px !important;
+    padding: 12px 14px !important;
+    color: var(--texto-blanco) !important;
+    font-size: 14px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
 }
 
-.backup-destination {
-    display: flex;
-    align-items: stretch;
-    gap: 8px;
-    margin: 0 auto 10px;
-    width: 90%;
+input[type="text"]:focus, select:focus {
+    border-color: var(--color-acento) !important;
+    outline: none;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.1), 0 0 0 2px rgba(var(--color-acento-rgb), 0.2);
 }
 
-#backup-path {
-    flex: 1;
-    min-width: 0;
-    padding: 10px;
-    background-color: #2d2d2d;
-    color: #ddd;
-    border: 1px solid #555;
-    border-radius: 5px;
-}
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: var(--color-fondo); }
+::-webkit-scrollbar-thumb { background: var(--color-borde); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-borde-hover); }
 
+/* Controles Base */
+#backup-name { width: 84%; margin-bottom: 10px; }
+.backup-destination { display: flex; align-items: stretch; gap: 8px; margin: 0 auto 10px; width: 90%; }
+#backup-path { flex: 1; min-width: 0; }
 #select-backup-path {
     flex: 0 0 auto;
     width: auto;
     margin: 0;
     padding: 10px 12px;
     font-size: 14px;
+    background-color: var(--color-tarjeta-hover);
+    color: var(--texto-blanco);
 }
+#select-backup-path:hover { background-color: var(--color-borde-hover); }
+
+/* =========================================
+   9. BOTONES GENERALES DE ACCIÓN
+   ========================================= */
+button {
+    background-color: var(--color-acento);
+    color: var(--color-fondo);
+    border: none;
+    padding: 15px 30px;
+    font-size: 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin: 10px;
+    width: 80%;
+}
+
+button:hover { background-color: var(--color-acento-hover); }
+button:disabled { background-color: var(--color-borde); color: var(--texto-gris); cursor: not-allowed; }
+
+/* Botón Principal Inteligente (Respaldar por defecto) */
+button#backup-btn {
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    padding: 14px 24px;
+    margin: 15px 0 10px;
+    width: 100%;
+    box-sizing: border-box;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(var(--color-acento-rgb), 0.3);
+    transition: all 0.2s ease;
+}
+
+button#backup-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(var(--color-acento-rgb), 0.5);
+}
+
+button#backup-btn:active:not(:disabled) { transform: translateY(1px); }
+
+/* Botón Mudo cuando está bloqueado */
+button#backup-btn:disabled {
+    background-color: var(--color-borde) !important;
+    box-shadow: none !important;
+    color: var(--texto-gris) !important;
+    cursor: not-allowed !important;
+    transform: none !important;
+}
+
+/* Modo Cancelar (Rojo) */
+button.cancel-backup {
+    background-color: var(--color-peligro) !important;
+    color: var(--texto-blanco) !important;
+    box-shadow: 0 4px 12px rgba(var(--color-peligro-rgb), 0.4) !important;
+}
+
+button.cancel-backup:hover:not(:disabled) {
+    background-color: var(--color-peligro-hover) !important;
+    box-shadow: 0 6px 16px rgba(var(--color-peligro-rgb), 0.5) !important;
+}
+
+/* Modo Restaurar (Cian) */
+#backup-btn.restore-mode {
+    background-color: var(--color-secundario);
+    box-shadow: 0 4px 12px rgba(var(--color-secundario-rgb), 0.4);
+}
+
+#backup-btn.restore-mode:hover:not(:disabled) {
+    background-color: var(--color-secundario-hover);
+    box-shadow: 0 6px 16px rgba(var(--color-secundario-rgb), 0.5);
+}
+
+/* =========================================
+   10. VISTA RESTAURAR Y LISTA
+   ========================================= */
+.restore-hint { margin-bottom: 10px; }
+
+.lista-respaldos {
+    background: var(--color-fondo);
+    border: 1px solid var(--color-borde);
+    border-radius: 5px;
+    height: 300px;
+    overflow-y: auto;
+    text-align: left;
+}
+
+.lista-mensaje { padding: 15px; color: var(--texto-gris); text-align: center; }
+.lista-mensaje.error { color: var(--color-peligro); }
+
+.backup-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 15px;
+    border-bottom: 1px solid var(--color-borde);
+    cursor: pointer;
+    word-break: break-all;
+    transition: background-color 0.2s;
+}
+
+.backup-item-icon {
+    display: inline-flex;
+    flex: 0 0 20px;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-secundario);
+}
+
+.backup-item-icon svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.8; }
+.backup-item:hover { background-color: var(--color-tarjeta-hover); }
+.backup-item.selected, .backup-item.selected:hover { background-color: var(--color-acento); color: var(--color-fondo); }
+.backup-item.selected .backup-item-icon { color: var(--color-fondo); }
+
+body.backup-running .backup-item { cursor: not-allowed; opacity: 0.6; }
+
+.backup-list-actions { display: flex; justify-content: flex-end; margin-top: 10px; }
+.backup-list-actions button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: auto; margin: 0; padding: 9px 12px; }
+.backup-list-actions svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.8; }
+.danger-action { background: var(--color-peligro); color: var(--texto-blanco); }
+.danger-action:hover { background: var(--color-peligro-hover); }
+.backup-list-actions button:disabled { opacity: 0.5; }
+
+/* =========================================
+   11. ESTADOS DE TEXTO Y PROGRESS BAR
+   ========================================= */
+#status { margin-top: 15px; color: var(--texto-gris); transition: color 160ms ease; }
+#status.status-info { color: var(--texto-gris); }
+#status.status-success, .success { color: var(--color-acento) !important; font-weight: bold; }
+#status.status-error { color: var(--color-peligro); font-weight: bold; }
+#status.status-warning { color: var(--color-warning); font-weight: bold; }
 
 #progress-container {
     display: flex;
@@ -547,266 +607,51 @@ body.backup-running .folder-badge .quitar {
     transition: opacity 180ms ease;
 }
 
-#progress-container.progress-visible {
-    visibility: visible;
-    opacity: 1;
-    pointer-events: auto;
-}
-
-#progress-card {
-    flex: 1;
-    min-width: 0;
-    text-align: left;
-}
+#progress-container.progress-visible { visibility: visible; opacity: 1; pointer-events: auto; }
+#progress-card { flex: 1; min-width: 0; text-align: left; padding-top: 12px; padding-bottom: 12px; }
 
 #progress-bar-container {
     position: relative;
     width: 100%;
     height: 14px;
     overflow: hidden;
-    border: 1px solid #555;
+    border: 1px solid var(--color-borde);
     border-radius: 8px;
-    background-color: #1e1e1e;
+    background-color: var(--color-fondo);
 }
 
 #progress-bar-container.progress-running::after {
     position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
+    top: 0; bottom: 0; left: 0;
     width: 22%;
     border-radius: inherit;
-    background: linear-gradient(90deg, transparent, #ffffff99, transparent);
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
     content: "";
     animation: progress-indeterminate 1.2s ease-in-out infinite;
 }
 
 @keyframes progress-indeterminate {
-    from {
-        transform: translateX(-100%);
-    }
-    to {
-        transform: translateX(455%);
-    }
+    from { transform: translateX(-100%); }
+    to { transform: translateX(455%); }
 }
 
 #progress-bar {
     width: 0;
     height: 100%;
     border-radius: inherit;
-    background: linear-gradient(90deg, #0078D7, #35c8e8);
-    transition: width 180ms ease, background-color 180ms ease;
+    background: linear-gradient(90deg, var(--color-acento), var(--color-secundario));
+    transition: width 450ms linear, background-color 180ms ease;
 }
 
-#progress-bar.progress-active {
-    background: linear-gradient(90deg, #0078D7, #35c8e8);
-}
+#progress-bar.progress-error { background: var(--color-peligro); }
+#progress-bar.progress-cancelled { background: var(--color-warning); }
 
-#progress-bar.progress-error {
-    background: #e05252;
-}
+#progress-text, #backup-status { min-height: 1.2em; color: #bbb; }
+#progress-text { margin: 8px 0 0; }
 
-#progress-bar.progress-cancelled {
-    background: #d89b38;
-}
-
-#progress-text,
-#backup-status {
-    min-height: 1.2em;
-    color: #bbb;
-}
-
-#progress-card {
-    padding-top: 12px;
-    padding-bottom: 12px;
-}
-
-#progress-text {
-    margin: 8px 0 0;
-}
-
-@media (prefers-reduced-motion: reduce) {
-    #celular_status.device-connected .phone-illustration::before {
-        animation: none;
-    }
-
-    #progress-bar {
-        transition: none;
-    }
-
-    #progress-bar-container.progress-running::after {
-        animation: none;
-        transform: translateX(150%);
-    }
-}
-
-[hidden] {
-    display: none !important;
-}
-
-/* Pestañas Respaldar / Restaurar */
-.tab-bar {
-    display: flex;
-    margin-bottom: 15px;
-    border-bottom: 1px solid #555;
-}
-
-.tab {
-    flex: 1;
-    width: 100%;
-    margin: 0;
-    padding: 10px;
-    background: transparent;
-    border: none;
-    border-bottom: 2px solid transparent;
-    border-radius: 0;
-    color: #aaa;
-}
-
-.tab:hover {
-    background: #333;
-    color: #fff;
-}
-
-.tab.active {
-    border-bottom-color: #0078D7;
-    color: #fff;
-    font-weight: bold;
-}
-
-.tab:disabled {
-    background: transparent;
-    color: #666;
-}
-
-.tab.active:disabled {
-    color: #999;
-}
-
-/* Vista Restaurar */
-.restore-hint {
-    margin-bottom: 10px;
-}
-
-.lista-respaldos {
-    background: #1e1e1e;
-    border: 1px solid #555;
-    border-radius: 5px;
-    height: 300px;
-    overflow-y: auto;
-    text-align: left;
-}
-
-.backup-list-actions {
-    display: flex;
-    justify-content: flex-end;
-    margin-top: 10px;
-}
-
-.backup-list-actions button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    width: auto;
-    margin: 0;
-    padding: 9px 12px;
-}
-
-.backup-list-actions svg {
-    width: 17px;
-    height: 17px;
-    fill: none;
-    stroke: currentColor;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    stroke-width: 1.8;
-}
-
-.danger-action {
-    background: #a83232;
-}
-
-.danger-action:hover {
-    background: #c13d3d;
-}
-
-.backup-list-actions button:disabled {
-    opacity: 0.5;
-}
-
-.lista-mensaje {
-    padding: 15px;
-    color: #aaa;
-    text-align: center;
-}
-
-.lista-mensaje.error {
-    color: #ff6b6b;
-}
-
-.backup-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 12px 15px;
-    border-bottom: 1px solid #333;
-    cursor: pointer;
-    word-break: break-all;
-    transition: background-color 0.2s;
-}
-
-.backup-item-icon {
-    display: inline-flex;
-    flex: 0 0 20px;
-    align-items: center;
-    justify-content: center;
-    color: #b6a0ff;
-}
-
-.backup-item-icon svg {
-    width: 20px;
-    height: 20px;
-    fill: none;
-    stroke: currentColor;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    stroke-width: 1.8;
-}
-
-.backup-item:hover {
-    background-color: #2a2a2a;
-}
-
-.backup-item.selected,
-.backup-item.selected:hover {
-    background-color: #005A9E;
-}
-
-body.backup-running .backup-item {
-    cursor: not-allowed;
-    opacity: 0.6;
-}
-
-/* Botón principal en modo Restaurar */
-#backup-btn.restore-mode {
-    background-color: #2b8a3e;
-}
-
-#backup-btn.restore-mode:hover {
-    background-color: #237032;
-}
-
-#backup-btn.restore-mode:disabled {
-    background-color: #555;
-}
-
-/* Estado con advertencias */
-#status.status-warning {
-    color: #e0a030;
-    font-weight: bold;
-}
-
+/* =========================================
+   12. MODAL (ADVERTENCIAS)
+   ========================================= */
 .modal-backdrop {
     position: fixed;
     z-index: 10;
@@ -815,141 +660,116 @@ body.backup-running .backup-item {
     align-items: center;
     justify-content: center;
     padding: 20px;
-    background: #0009;
+    background: rgba(0,0,0,0.6);
     backdrop-filter: blur(3px);
 }
 
 .confirm-modal {
     width: min(100%, 420px);
     padding: 24px;
-    border: 1px solid #555;
+    border: 1px solid var(--color-borde);
     border-radius: 12px;
-    background: #2d2d2d;
-    box-shadow: 0 18px 55px #0009;
+    background: var(--color-tarjeta);
+    box-shadow: 0 18px 55px rgba(0,0,0,0.6);
     text-align: left;
 }
 
-.confirm-modal h2 {
-    margin: 0 0 12px;
-    font-size: 20px;
-}
+.confirm-modal h2 { margin: 0 0 12px; font-size: 20px; }
+.confirm-modal p { margin: 0; color: #ccc; line-height: 1.55; white-space: pre-line; overflow-wrap: anywhere; }
 
-.confirm-modal p {
-    margin: 0;
-    color: #ccc;
-    line-height: 1.55;
-    white-space: pre-line;
-    overflow-wrap: anywhere;
-}
-
-.confirm-modal-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    margin-top: 24px;
-}
-
-.confirm-modal-actions button {
-    width: auto;
-    min-width: 96px;
-    margin: 0;
-    padding: 10px 16px;
-}
+.confirm-modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px; }
+.confirm-modal-actions button { width: auto; min-width: 96px; margin: 0; padding: 10px 16px; }
 
 .confirm-modal-actions .modal-cancel {
-    border: 1px solid #666;
-    background: #383838;
+    border: 1px solid var(--color-borde);
+    background: var(--color-tarjeta-hover);
+    color: var(--texto-blanco);
 }
 
-.confirm-modal-actions .modal-cancel:hover {
-    background: #484848;
-}
-/* Agrega esto en cualquier parte de tu styles.css */
+.confirm-modal-actions .modal-cancel:hover { background: var(--color-borde-hover); }
 
-input[type="text"], select {
-    background-color: #1a1a1a !important; /* Más oscuro que la tarjeta */
-    border: 1px solid #444 !important;
-    border-radius: 6px !important;
-    padding: 12px 14px !important;
-    color: #eee !important;
-    font-size: 14px;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
-    box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); /* Sombra interior */
-}
-
-input[type="text"]:focus, select:focus {
-    border-color: #0078D7 !important;
-    outline: none;
-    box-shadow: inset 0 2px 4px rgba(0,0,0,0.1), 0 0 0 2px rgba(0, 120, 215, 0.2);
+/* =========================================
+   13. ICONO ANDROID & FLECHAS ANIMADAS
+   ========================================= */
+.phone-android-icon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 64px; 
+    height: 64px;
+    color: var(--color-acento);
+    transform: translate(-50%, -50%);
+    transition: color 0.3s ease;
 }
 
-/* Estilizar el scrollbar del select (opcional para Webkit) */
-::-webkit-scrollbar {
-    width: 8px;
+.phone-android-icon circle { fill: currentColor; stroke: none; }
+
+.phone-android-icon .arrow-backup,
+.phone-android-icon .arrow-restore {
+    transition: opacity 0.4s ease, filter 0.4s ease;
+    opacity: 0.15; 
 }
-::-webkit-scrollbar-track {
-    background: #1e1e1e; 
+
+/* Modificamos los trazos estáticos para heredar color en las flechas */
+.phone-android-icon .arrow-backup path, .phone-android-icon .arrow-backup polyline { stroke: var(--color-acento); }
+.phone-android-icon .arrow-restore path, .phone-android-icon .arrow-restore polyline { stroke: var(--color-secundario); }
+
+@keyframes android-color-backup {
+    0%, 100% { color: var(--color-acento); transform: translate(-50%, -50%) scale(1); }
+    50% { color: var(--color-warning); transform: translate(-50%, -50%) scale(1.05); }
 }
-::-webkit-scrollbar-thumb {
-    background: #555; 
-    border-radius: 4px;
+
+@keyframes android-color-restore {
+    0%, 100% { color: var(--color-acento); transform: translate(-50%, -50%) scale(0.98); opacity: 0.8; }
+    50% { color: var(--color-secundario); transform: translate(-50%, -50%) scale(1.1); opacity: 1; filter: drop-shadow(0 0 6px rgba(var(--color-secundario-rgb), 0.4)); }
 }
-::-webkit-scrollbar-thumb:hover {
-    background: #777; 
+
+body.is-backing-up .phone-android-icon { animation: android-color-backup 1.5s ease-in-out infinite; }
+body.is-restoring .phone-android-icon { animation: android-color-restore 1.2s cubic-bezier(0.25, 0.8, 0.25, 1) infinite; }
+
+body.is-backing-up .phone-android-icon .arrow-backup {
+    opacity: 1;
+    filter: drop-shadow(0 0 6px var(--color-acento));
 }
-/* --- ANIMACIÓN PARA RESPALDO (Latido Ámbar) --- */
-@keyframes android-pulse-backup {
-    0%, 100% { 
-        color: #55d98b; /* Verde original */
-        transform: translate(-50%, -50%) scale(1); 
+body.is-backing-up .phone-android-icon .arrow-restore { opacity: 0; }
+body.is-backing-up .phone-android-icon .arrow-backup .data-line {
+    stroke-dasharray: 8 6;
+    animation: data-flow 0.5s linear infinite;
+}
+
+body.is-restoring .phone-android-icon .arrow-restore {
+    opacity: 1;
+    filter: drop-shadow(0 0 6px var(--color-secundario));
+}
+body.is-restoring .phone-android-icon .arrow-backup { opacity: 0; }
+body.is-restoring .phone-android-icon .arrow-restore .data-line {
+    stroke-dasharray: 8 6;
+    animation: data-flow 0.5s linear infinite;
+}
+
+body.backup-running .phone-android-icon .sync-arrows {
+    transform-origin: center;
+    animation: spin-arrows 2s linear infinite;
+}
+
+@keyframes spin-arrows { 100% { transform: rotate(-360deg); } }
+@keyframes data-flow { to { stroke-dashoffset: -14; } }
+
+/* =========================================
+   14. REDUCIR MOVIMIENTO (Accesibilidad)
+   ========================================= */
+@media (prefers-reduced-motion: reduce) {
+    #celular_status.device-connected .phone-illustration::before { animation: none; }
+    #progress-bar { transition: none; }
+    #progress-bar-container.progress-running::after {
+        animation: none;
+        transform: translateX(150%);
     }
-    50% { 
-        color: #ffbd59; /* Naranja haciendo juego con el borde */
-        transform: translate(-50%, -50%) scale(1.08); 
+    body.is-backing-up .phone-android-icon, 
+    body.is-restoring .phone-android-icon,
+    body.backup-running .phone-android-icon .sync-arrows,
+    body.is-backing-up .phone-android-icon .arrow-backup .data-line,
+    body.is-restoring .phone-android-icon .arrow-restore .data-line {
+        animation: none;
     }
-}
-
-body.is-backing-up .phone-android-icon {
-    animation: android-pulse-backup 1.5s ease-in-out infinite;
-}
-
-/* --- ANIMACIÓN PARA RESTAURACIÓN (Inyección Verde Brillante) --- */
-@keyframes android-pulse-restore {
-    0%, 100% { 
-        color: #55d98b; 
-        transform: translate(-50%, -50%) scale(0.95); 
-        opacity: 0.7;
-    }
-    50% { 
-        color: #20dfff; /* Azul/Cyan intenso brillante */
-        transform: translate(-50%, -50%) scale(1.15); 
-        opacity: 1;
-        filter: drop-shadow(0 0 8px rgba(32, 223, 255, 0.6)); /* Efecto holográfico */
-    }
-}
-
-body.is-restoring .phone-android-icon {
-    animation: android-pulse-restore 1.2s cubic-bezier(0.25, 0.8, 0.25, 1) infinite;
-}
-/* --- BOTÓN MODO CANCELAR (Rojo) --- */
-button.cancel-backup {
-    background-color: #b83b3b !important;
-    box-shadow: 0 4px 12px rgba(184, 59, 59, 0.4) !important; /* Resplandor rojo */
-}
-
-button.cancel-backup:hover {
-    background-color: #922d2d !important;
-    box-shadow: 0 6px 16px rgba(184, 59, 59, 0.5) !important;
-}
-
-
-/* --- BOTÓN MODO RESTAURAR (Verde) --- */
-#backup-btn.restore-mode {
-    background-color: #2b8a3e;
-    box-shadow: 0 4px 12px rgba(43, 138, 62, 0.4); /* Resplandor verde */
-}
-
-#backup-btn.restore-mode:hover:not(:disabled) {
-    background-color: #237032;
-    box-shadow: 0 6px 16px rgba(43, 138, 62, 0.5);
 }

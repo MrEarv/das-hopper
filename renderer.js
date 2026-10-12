@@ -76,6 +76,51 @@ function formatearGigabytes(bytes) {
     return `${gigabytes < 0.01 && gigabytes > 0 ? '<0.01' : gigabytes.toFixed(2)} GB`;
 }
 
+function formatearTamano(bytes) {
+    if (!Number.isFinite(bytes) || bytes < 0) return '—';
+    const unidades = ['B', 'KB', 'MB', 'GB', 'TB'];
+    let valor = bytes;
+    let i = 0;
+    while (valor >= 1024 && i < unidades.length - 1) {
+        valor /= 1024;
+        i++;
+    }
+    return `${valor.toFixed(i === 0 || valor >= 100 ? 0 : 1)} ${unidades[i]}`;
+}
+
+function formatearRestante(segundos) {
+    if (!Number.isFinite(segundos) || segundos < 0) return '';
+    if (segundos < 60) return `${Math.max(1, Math.round(segundos))} s`;
+    const minutos = Math.round(segundos / 60);
+    if (minutos < 60) return `${minutos} min`;
+    const horas = Math.floor(minutos / 60);
+    const resto = minutos % 60;
+    return resto ? `${horas} h ${resto} min` : `${horas} h`;
+}
+
+// Velocidad media de los últimos ~10 s, calculada con los bytes que informa el proceso principal
+let muestrasProgreso = [];
+let inicioProgreso = 0;
+
+function reiniciarMuestras() {
+    muestrasProgreso = [];
+    inicioProgreso = performance.now();
+}
+
+function registrarMuestra(bytes) {
+    const ahora = performance.now();
+    muestrasProgreso.push({ t: ahora, b: bytes });
+    while (muestrasProgreso.length > 2 && ahora - muestrasProgreso[0].t > 10000) muestrasProgreso.shift();
+}
+
+function calcularVelocidad() {
+    if (muestrasProgreso.length < 2) return 0;
+    const primera = muestrasProgreso[0];
+    const ultima = muestrasProgreso[muestrasProgreso.length - 1];
+    const segundos = (ultima.t - primera.t) / 1000;
+    return segundos >= 2 ? Math.max(0, (ultima.b - primera.b) / segundos) : 0;
+}
+
 function setProgress(percent, message, active = false) {
     const acotado = Math.max(0, Math.min(100, Number.isFinite(percent) ? percent : 0));
     ultimoPorcentaje = acotado;
@@ -306,7 +351,7 @@ ipcRenderer.on('estado-dispositivo', (event, data) => {
         deviceStatus.innerText = `Conectado: ${data.nombre || data.id}`;
         deviceStatus.classList.add('success');
 
-        if (!operacionEnCurso) setStatus('Dispositivo detectado. Listo para operar.', 'success');
+        if (!operacionEnCurso) setStatus('Dispositivo detectado.\nListo para operar.', 'success');
         cargarCarpetasAndroid();
     } else {
         dispositivoIdActual = '';
@@ -460,6 +505,7 @@ deleteBackupButton.addEventListener('click', async () => {
 async function ejecutarOperacionUI({ tipo, canal, payload, estadoInicial, textoInicial }) {
     operacionEnCurso = tipo;
     cancelacionEnCurso = false;
+    reiniciarMuestras();
     bloquearControles(true);
     actualizarBoton();
 
@@ -676,10 +722,31 @@ ipcRenderer.on('backup-progress', (event, u) => {
             );
             break;
 
-        case 'progress':
-            setProgress(Number(u.percent), `${Number(u.percent).toFixed(1)}% completado · ${textoTarea(u)}`, true);
-            if (u.file) progresoTexto.innerText = `${nombreArchivo(u.file)} (${u.filePercent}%)`;
+        case 'progress': {
+            const porcentajeActual = Number(u.percent);
+            const hayBytes = Number.isFinite(u.bytesDone) && Number.isFinite(u.bytesTotal) && u.bytesTotal > 0;
+
+            const textoBarra = [`${porcentajeActual.toFixed(1)}% completado`, textoTarea(u)];
+            if (hayBytes) textoBarra.push(`${formatearTamano(u.bytesDone)} de ${formatearTamano(u.bytesTotal)}`);
+            setProgress(porcentajeActual, textoBarra.join(' · '), true);
+
+            // Detalle vivo: velocidad, tiempo restante y archivo actual
+            const detalle = [];
+            if (hayBytes) {
+                registrarMuestra(u.bytesDone);
+                const velocidad = calcularVelocidad();
+                if (velocidad > 0) detalle.push(`${formatearTamano(velocidad)}/s`);
+
+                const transcurridoS = (performance.now() - inicioProgreso) / 1000;
+                if (velocidad > 0 && transcurridoS >= 6 && porcentajeActual >= 1 && porcentajeActual < 100) {
+                    const restante = formatearRestante((u.bytesTotal - u.bytesDone) / velocidad);
+                    if (restante) detalle.push(`≈ ${restante} restantes`);
+                }
+            }
+            if (u.file) detalle.push(String(u.file).includes(' (') ? u.file : nombreArchivo(u.file));
+            if (detalle.length) progresoTexto.innerText = detalle.join(' · ');
             break;
+        }
 
         case 'task-complete':
             progresoTexto.innerText = `${u.taskName} completada`;

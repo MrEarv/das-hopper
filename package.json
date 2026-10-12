@@ -1,16 +1,20 @@
 {
   "name": "das-hopper",
   "version": "1.0.0",
-  "description": "",
+  "description": "Herramienta de respaldo ADB - Dastan Edition",
   "main": "main.js",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "build": "electron-builder"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
+  "build": {
+    "appId": "com.das-hopper.app",
+    "win": {
+      "icon": "assets/icon.ico"
+    }
+  },
   "devDependencies": {
-    "electron": "^44.5.1"
+    "electron": "^44.5.1",
+    "electron-builder": "^24.13.3"
   }
 }

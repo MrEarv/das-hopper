@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" stroke="#eeeeee" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Fondo oscuro redondeado -->
+    <rect width="64" height="64" rx="14" fill="#1a1a1a" stroke="none" />
+    
+    <!-- Dastan (Logo Minimalista) -->
+    <g transform="translate(32, 32) scale(1.15) translate(-32, -32)">
+        <!-- Orejas caídas -->
+        <path d="M22 22 Q10 20 12 34 Q16 36 20 28" />
+        <path d="M42 22 Q54 20 52 34 Q48 36 44 28" />
+        
+        <!-- Frente y cabeza -->
+        <path d="M22 22 Q32 16 42 22" />
+        
+        <!-- Barba desgreñada y mejillas (Textura Terrier) -->
+        <path d="M20 28 L15 36 L22 38 L18 46 L26 48 L32 52 L38 48 L46 46 L42 38 L49 36 L44 28" />
+        
+        <!-- Ojos atentos -->
+        <circle cx="26" cy="30" r="2.5" fill="#eeeeee" stroke="none" />
+        <circle cx="38" cy="30" r="2.5" fill="#eeeeee" stroke="none" />
+        
+        <!-- Nariz -->
+        <path d="M29 37 Q32 35 35 37 L33.5 40 Q32 41 30.5 40 Z" fill="#eeeeee" stroke="none" />
+        
+        <!-- La icónica lengua de fuera (Acento de color) -->
+        <path d="M32 45 V49 A 3 3 0 0 0 38 49 V42" stroke="#e05252" stroke-width="2.5" />
+    </g>
+</svg>
