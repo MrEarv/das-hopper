@@ -1,9 +1,5 @@
 const { ipcRenderer } = require('electron');
 const path = require('path');
-
-// ---------------------------------------------------------------------------
-// Elementos
-// ---------------------------------------------------------------------------
 const btnBackup = document.getElementById('backup-btn');
 const deviceStatus = document.getElementById('device-status');
 const statusText = document.getElementById('status');
@@ -39,7 +35,7 @@ const selectFolders = document.getElementById('android-folders-list');
 const CLAVE_RUTA = 'rutaRespaldoGuardada';
 
 let dispositivoIdActual = '';
-let operacionEnCurso = null; // 'backup' | 'restore' | null
+let operacionEnCurso = null;
 let cancelacionEnCurso = false;
 let estadosControlesPrevios = new Map();
 let modoActual = 'backup';
@@ -98,7 +94,6 @@ function formatearRestante(segundos) {
     return resto ? `${horas} h ${resto} min` : `${horas} h`;
 }
 
-// Velocidad media de los últimos ~10 s, calculada con los bytes que informa el proceso principal
 let muestrasProgreso = [];
 let inicioProgreso = 0;
 
@@ -156,7 +151,7 @@ function bloquearControles(bloquear) {
     if (bloquear) {
         estadosControlesPrevios = new Map();
         document.querySelectorAll('button, input, select').forEach((control) => {
-            if (control === btnBackup) return; // el botón principal pasa a ser "Cancelar"
+            if (control === btnBackup) return;
             estadosControlesPrevios.set(control, control.disabled);
             control.disabled = true;
         });
@@ -404,7 +399,7 @@ tabRestore.addEventListener('click', () => cambiarModo('restore'));
 // Lista de respaldos
 // ---------------------------------------------------------------------------
 async function cargarListaRespaldos() {
-    respaldoSeleccionado = ''; // evita restaurar una selección que ya no se ve
+    respaldoSeleccionado = '';
     backupNameInput.value = '';
     deleteBackupButton.disabled = true;
     const carpetaBase = backupPathInput.value;
@@ -533,7 +528,7 @@ async function ejecutarOperacionUI({ tipo, canal, payload, estadoInicial, textoI
 
 function mostrarResultado(tipo, respuesta, duracionMs) {
     const etiqueta = tipo === 'restore' ? 'Restauración' : 'Respaldo';
-    const o = tipo === 'restore' ? 'a' : 'o'; // concordancia de género
+    const o = tipo === 'restore' ? 'a' : 'o';
     progresoTexto.innerText = '';
 
     if (respuesta.cancelled) {
@@ -730,7 +725,6 @@ ipcRenderer.on('backup-progress', (event, u) => {
             if (hayBytes) textoBarra.push(`${formatearTamano(u.bytesDone)} de ${formatearTamano(u.bytesTotal)}`);
             setProgress(porcentajeActual, textoBarra.join(' · '), true);
 
-            // Detalle vivo: velocidad, tiempo restante y archivo actual
             const detalle = [];
             if (hayBytes) {
                 registrarMuestra(u.bytesDone);
@@ -758,7 +752,4 @@ ipcRenderer.on('backup-progress', (event, u) => {
     }
 });
 
-// ---------------------------------------------------------------------------
-// Inicio
-// ---------------------------------------------------------------------------
 actualizarBoton();

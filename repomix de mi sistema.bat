@@ -1,1 +1,0 @@
-npx repomix --ignore "node_modules/**,client/public/static/**,client/public/media/**,client/public/assets/**,.git/**,package-lock.json,*.log"

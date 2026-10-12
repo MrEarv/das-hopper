@@ -1,6 +1,6 @@
-/* =========================================
-   1. VARIABLES (PALETA DE COLORES)
-   ========================================= */
+/*
+  Variables de estilo
+ */
 :root {
     /* Fondos y superficies */
     --color-fondo: #10161a;
@@ -34,10 +34,7 @@
     --texto-blanco: #ffffff;
     --texto-gris: #aaaaaa;
 }
-
-/* =========================================
-   2. LAYOUT GLOBAL
-   ========================================= */
+/* layout */
 body {
     font-family: 'Verdana', Tahoma, Geneva, sans-serif;
     background-color: var(--color-fondo);
@@ -83,10 +80,7 @@ h1 {
 [hidden] {
     display: none !important;
 }
-
-/* =========================================
-   3. PANELES Y TARJETAS
-   ========================================= */
+/* Paneles y tarjetas */
 .card {
     background-color: var(--color-tarjeta);
     padding: 14px;
@@ -105,9 +99,7 @@ h1 {
 #celular-info { flex: 4; }
 #opciones { flex: 1; }
 
-/* =========================================
-   4. ILUSTRACIÓN DEL TELÉFONO
-   ========================================= */
+/* Ilustracion celular */
 .phone-illustration {
     position: relative;
     isolation: isolate;
@@ -179,10 +171,7 @@ body.backup-running #celular_status.device-connected .phone-illustration::before
     animation: none;
     opacity: 1;
 }
-
-/* =========================================
-   5. PESTAÑAS (TABS)
-   ========================================= */
+/* Tabs */
 .tab-bar {
     display: flex;
     margin-bottom: 15px;
@@ -205,10 +194,7 @@ body.backup-running #celular_status.device-connected .phone-illustration::before
 .tab.active { border-bottom-color: var(--color-acento); color: var(--texto-blanco); font-weight: bold; }
 .tab:disabled { background: transparent; color: var(--color-borde-hover); }
 .tab.active:disabled { color: var(--texto-gris); }
-
-/* =========================================
-   6. OPCIONES DE RESPALDO Y CHECKBOXES
-   ========================================= */
+/* Opciones de respaldo - Checkboxes */
 .backup-options {
     display: grid;
     gap: 8px;
@@ -310,10 +296,7 @@ body.backup-running #celular_status.device-connected .phone-illustration::before
     color: #ddd;
     line-height: 1.4;
 }
-
-/* =========================================
-   7. CARPETAS EXTRA (MODO RESPALDO)
-   ========================================= */
+/* Carpetas extra */
 .extra-folders-section {
     margin-top: 10px;
     padding-top: 10px;
@@ -425,10 +408,7 @@ body.backup-running .folder-badge .quitar {
     opacity: 0.5;
     cursor: not-allowed;
 }
-
-/* =========================================
-   8. INPUTS MODERNOS Y SCROLLBAR
-   ========================================= */
+/* inputs */
 input[type="text"], select {
     background-color: var(--color-fondo) !important;
     border: 1px solid var(--color-borde) !important;
@@ -466,9 +446,7 @@ input[type="text"]:focus, select:focus {
 }
 #select-backup-path:hover { background-color: var(--color-borde-hover); }
 
-/* =========================================
-   9. BOTONES GENERALES DE ACCIÓN
-   ========================================= */
+/*Botones de accion*/
 button {
     background-color: var(--color-acento);
     color: var(--color-fondo);
@@ -537,9 +515,7 @@ button.cancel-backup:hover:not(:disabled) {
     box-shadow: 0 6px 16px rgba(var(--color-secundario-rgb), 0.5);
 }
 
-/* =========================================
-   10. VISTA RESTAURAR Y LISTA
-   ========================================= */
+/* restaurar */
 .restore-hint { margin-bottom: 10px; }
 
 .lista-respaldos {
@@ -587,9 +563,7 @@ body.backup-running .backup-item { cursor: not-allowed; opacity: 0.6; }
 .danger-action:hover { background: var(--color-peligro-hover); }
 .backup-list-actions button:disabled { opacity: 0.5; }
 
-/* =========================================
-   11. ESTADOS DE TEXTO Y PROGRESS BAR
-   ========================================= */
+/* barra y texto*/
 #status { margin-top: 15px; color: var(--texto-gris); transition: color 160ms ease; }
 #status.status-info { color: var(--texto-gris); }
 #status.status-success, .success { color: var(--color-acento) !important; font-weight: bold; }
@@ -649,9 +623,7 @@ body.backup-running .backup-item { cursor: not-allowed; opacity: 0.6; }
 #progress-text, #backup-status { min-height: 1.2em; color: #bbb; }
 #progress-text { margin: 8px 0 0; }
 
-/* =========================================
-   12. MODAL (ADVERTENCIAS)
-   ========================================= */
+/* modal de confirmacion */
 .modal-backdrop {
     position: fixed;
     z-index: 10;
@@ -688,9 +660,7 @@ body.backup-running .backup-item { cursor: not-allowed; opacity: 0.6; }
 
 .confirm-modal-actions .modal-cancel:hover { background: var(--color-borde-hover); }
 
-/* =========================================
-   13. ICONO ANDROID & FLECHAS ANIMADAS
-   ========================================= */
+/* icono android |*/
 .phone-android-icon {
     position: absolute;
     top: 50%;
@@ -755,9 +725,7 @@ body.backup-running .phone-android-icon .sync-arrows {
 @keyframes spin-arrows { 100% { transform: rotate(-360deg); } }
 @keyframes data-flow { to { stroke-dashoffset: -14; } }
 
-/* =========================================
-   14. REDUCIR MOVIMIENTO (Accesibilidad)
-   ========================================= */
+/* reducir movimiento */
 @media (prefers-reduced-motion: reduce) {
     #celular_status.device-connected .phone-illustration::before { animation: none; }
     #progress-bar { transition: none; }

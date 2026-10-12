@@ -6,23 +6,17 @@ const { pipeline } = require('stream/promises');
 const crypto = require('crypto');
 const path = require('path');
 const https = require('https');
-
-// ---------------------------------------------------------------------------
-// Configuración
-// ---------------------------------------------------------------------------
 const adbPath = path.join(__dirname, 'bin', 'adb.exe');
 
 const WHATSAPP_PACKAGE = 'com.whatsapp';
 const WHATSAPP_APK_URL = 'https://github.com/MrEarv/das-hopper/releases/download/v1.0.0-asset/whatsapp.apk';
-// Recomendado: pega aquí el SHA-256 (hex) del APK que consideres confiable.
-// Si se deja vacío, el APK se instala SIN verificar su integridad.
 const WHATSAPP_APK_SHA256 = '';
 
 // ---------------------------------------------------------------------------
 // Estado global
 // ---------------------------------------------------------------------------
-let dispositivoActual = null; // serial del dispositivo en estado "device"
-const operacionesActivas = new Map(); // senderId -> { tipo, cancelado, proceso, request }
+let dispositivoActual = null;
+const operacionesActivas = new Map();
 
 const RESULTADO_CANCELADO = () => ({
     success: false,
@@ -41,8 +35,8 @@ function createWindow() {
         show: false,
         icon: path.join(__dirname, 'assets', 'icon.png'),
         webPreferences: {
-            nodeIntegration: true, // Permite usar módulos de Node en el HTML
-            contextIsolation: false // Simplifica el proyecto (ver notas de seguridad)
+            nodeIntegration: true,
+            contextIsolation: false
         },
         frame: true,
         autoHideMenuBar: true,
@@ -158,7 +152,6 @@ function crearEmisor(event) {
     let maxBytes = 0;
     const enviar = (payload) => {
         if (payload.type === 'progress') {
-            // Con estimaciones y mediciones mezcladas, la barra jamás debe ir hacia atrás
             payload.percent = Math.max(maxPorcentaje, payload.percent);
             maxPorcentaje = payload.percent;
             if (Number.isFinite(payload.bytesDone)) {
@@ -170,7 +163,6 @@ function crearEmisor(event) {
     };
     return {
         enviar,
-        // Versión con límite de frecuencia para no saturar la UI
         progreso(payload) {
             const ahora = Date.now();
             if (ahora - ultimoEnvio < 80 && payload.percent < 100) return;
@@ -434,19 +426,11 @@ function transferirADB(serial, accion, origen, destino, op, { onArchivo, onTexto
 }
 
 // ---------------------------------------------------------------------------
-// Progreso continuo
-//
-// "adb" casi nunca imprime porcentajes cuando su salida va por una tubería (como
-// aquí), así que no se puede depender de ellos: la barra solo se movía al terminar
-// cada carpeta. En su lugar:
-//  - RESPALDO: se observa la carpeta destino en el disco y se cuentan los bytes que
-//    "adb pull" va escribiendo (cada ~0,5 s), incluso dentro de un archivo grande.
-//  - RESTAURACIÓN: la carpeta se envía en lotes pequeños (~128 MB) y, mientras adb
-//    trabaja en uno, la barra avanza según la velocidad medida en los lotes anteriores.
+// ADB no informa progreso fiable: se mide lo escrito en pull y se estima push por lotes.
 // ---------------------------------------------------------------------------
-const UNIDAD_MAX_BYTES = 128 * 1024 * 1024; // tamaño máximo de cada envío a ADB al restaurar
+const UNIDAD_MAX_BYTES = 128 * 1024 * 1024;
 const UNIDAD_MAX_ARCHIVOS = 400;
-const LOTE_MAX_CHARS = 12000; // la línea de comandos de Windows admite ~32 000 caracteres
+const LOTE_MAX_CHARS = 12000;
 
 function emitirProgreso(emisor, { baseKB, totalKB, hechoKB, info, extra = {}, forzar = false }) {
     const total = Math.max(1, totalKB);
@@ -462,31 +446,22 @@ function emitirProgreso(emisor, { baseKB, totalKB, hechoKB, info, extra = {}, fo
     else emisor.progreso(payload);
 }
 
-/** Velocidad estimada (bytes/s) a partir de envíos que sí movieron datos. */
 function crearEstimador(velocidadInicial = 12 * 1024 * 1024) {
     let velocidad = velocidadInicial;
     return {
         velocidad: () => velocidad,
         registrar(bytes, ms) {
-            if (bytes < 4 * 1024 * 1024 || ms < 1200) return; // lotes omitidos o muy rápidos no sirven
+            if (bytes < 4 * 1024 * 1024 || ms < 1200) return;
             velocidad = velocidad * 0.6 + (bytes / (ms / 1000)) * 0.4;
         }
     };
 }
 
-/**
- * Observa una carpeta local mientras "adb pull" escribe en ella y reporta cuántos bytes
- * se han escrito.
- *  - Archivos que NO existían al empezar (respaldo nuevo): se cuentan todos, sin depender
- *    de fechas del sistema de archivos (poco fiables en discos FAT/exFAT).
- *  - Archivos que YA existían (al actualizar un respaldo): se cuentan cuando su fecha de
- *    cambio es posterior al inicio, es decir, cuando adb los reescribe.
- * Solo vuelve a medir los archivos que pueden seguir creciendo, por lo que es barato.
- */
+// En respaldos existentes, solo cuenta los archivos que ADB modifica durante la copia.
 function crearMonitorCarpeta(raiz, onCambio, { intervaloMs = 500 } = {}) {
     const desdeMs = Date.now() - 1000;
-    const existentes = new Set(); // archivos que ya estaban en la carpeta antes de empezar
-    const tocados = new Map(); // ruta -> bytes actuales de los archivos escritos en esta operación
+    const existentes = new Set();
+    const tocados = new Map();
     let activos = new Set();
     let ultimo = null;
     let bytes = 0;
@@ -524,7 +499,6 @@ function crearMonitorCarpeta(raiz, onCambio, { intervaloMs = 500 } = {}) {
             } catch (e) {
                 continue;
             }
-            // Un archivo que ya existía solo cuenta si adb lo reescribió después de empezar
             if (existentes.has(p) && st.ctimeMs < desdeMs) continue;
             const previo = tocados.get(p);
             if (previo === undefined || st.size !== previo) {
@@ -533,7 +507,7 @@ function crearMonitorCarpeta(raiz, onCambio, { intervaloMs = 500 } = {}) {
                 cambiados.add(p);
                 if (st.mtimeMs >= mtimeUltimo) {
                     mtimeUltimo = st.mtimeMs;
-                    ultimo = p; // el archivo que adb está escribiendo ahora
+                    ultimo = p;
                 }
             }
         }
@@ -552,7 +526,6 @@ function crearMonitorCarpeta(raiz, onCambio, { intervaloMs = 500 } = {}) {
             const inicio = Date.now();
             await pasada();
             onCambio({ bytes: Math.max(0, bytes), archivos: tocados.size, archivo: ultimo });
-            // Si la pasada tarda (muchos archivos), se espera al menos lo mismo para no saturar el disco
             await esperar(Math.max(intervaloMs, Date.now() - inicio));
         }
     }
@@ -592,9 +565,7 @@ function crearMonitorCarpeta(raiz, onCambio, { intervaloMs = 500 } = {}) {
     };
 }
 
-/** Copia una carpeta del teléfono mientras la barra sigue los bytes que llegan al disco. */
 async function copiarConMonitor({ serial, origen, destino, tarea, baseKB, totalKB, info, op, emisor }) {
-    // "adb pull <carpeta> <destino>" crea <destino>/<nombre de la carpeta>
     const raiz = path.join(destino, path.posix.basename(origen.replace(/\/+$/, '')));
     const monitor = crearMonitorCarpeta(raiz, (m) => {
         emitirProgreso(emisor, {
@@ -616,7 +587,6 @@ async function copiarConMonitor({ serial, origen, destino, tarea, baseKB, totalK
 
 // ---- Restauración por lotes ----
 
-/** Árbol local con tamaños: sirve para dividir la carpeta en envíos pequeños. */
 async function construirArbol(dir, op) {
     const nodo = { ruta: dir, nombre: path.basename(dir), archivos: [], subdirs: [], bytes: 0, totalArchivos: 0 };
     let entradas;
@@ -678,13 +648,9 @@ function armarLotes(archivos, remotoDir, relativo, plan) {
     cerrar();
 }
 
-/**
- * Divide una carpeta en "unidades" de envío: un subárbol pequeño se envía completo en una
- * sola llamada a adb; uno grande se reparte en lotes de archivos y subcarpetas.
- */
 function particionar(nodo, remotoDir, relativo, plan) {
     if (nodo.totalArchivos === 0) {
-        plan.dirsRemotos.add(remotoDir); // carpeta vacía: solo se crea
+        plan.dirsRemotos.add(remotoDir);
         return;
     }
     if (nodo.totalArchivos <= UNIDAD_MAX_ARCHIVOS && nodo.bytes <= UNIDAD_MAX_BYTES) {
@@ -716,7 +682,7 @@ function planificarTarea(arbol, nombreCarpeta) {
 
 function argumentosPush(unidad, usarSync) {
     const args = ['push'];
-    if (usarSync) args.push('--sync'); // omite los archivos que ya están en el teléfono
+    if (usarSync) args.push('--sync');
     if (unidad.tipo === 'dir') return [...args, unidad.local, `${unidad.remotoPadre}/`];
     return [...args, ...unidad.locales, `${unidad.remotoDir}/`];
 }
@@ -739,7 +705,6 @@ async function crearDirectoriosRemotos(serial, dirs, op) {
     }
 }
 
-/** Envía una carpeta al teléfono lote por lote, animando la barra mientras adb trabaja. */
 async function empujarPorLotes({ serial, tarea, usarSync, baseKB, totalKB, info, op, emisor, estimador, advertencias }) {
     await crearDirectoriosRemotos(serial, [...tarea.plan.dirsRemotos], op);
     if (op.cancelado) return { cancelado: true };
@@ -754,8 +719,6 @@ async function empujarPorLotes({ serial, tarea, usarSync, baseKB, totalKB, info,
         const inicio = Date.now();
         const base = hechoBytes;
 
-        // Mientras adb trabaja en el lote, la barra avanza según la velocidad estimada
-        // (sin pasar del 92% del lote hasta que adb confirme que terminó).
         const animacion = setInterval(() => {
             const segundos = (Date.now() - inicio) / 1000;
             const estimado = Math.min(unidad.bytes * 0.92, segundos * estimador.velocidad());
@@ -828,8 +791,8 @@ function quitarSolapadas(tareas, advertencias) {
             if (i === j) return false;
             const a = norm(t);
             const b = norm(o);
-            if (a === b) return j < i; // duplicado exacto: se conserva el primero
-            return a.startsWith(b); // t está dentro de o
+            if (a === b) return j < i;
+            return a.startsWith(b);
         });
         if (cubierta && norm(cubierta) !== norm(t)) {
             advertencias.push(`${t.nombre} ya está incluida en "${cubierta.nombre}" y no se copia dos veces.`);
@@ -886,7 +849,6 @@ async function ejecutarRespaldo(event, selecciones, op) {
 
     const carpetaDestinoPC = path.join(carpetaBase, nombreBackup);
 
-    // Solo combina con un respaldo existente tras la confirmación de la interfaz.
     try {
         const info = await fs.lstat(carpetaDestinoPC);
         if (!info.isDirectory() || info.isSymbolicLink()) {
@@ -906,7 +868,7 @@ async function ejecutarRespaldo(event, selecciones, op) {
     const agregarTarea = (nombre, rutaAndroid) => {
         const ruta = rutaAndroid.replace(/\/+$/, '') + '/';
         const relativa = ruta.replace(/^\/sdcard\//, '').replace(/\/+$/, '');
-        const padre = path.posix.dirname(relativa); // la ruta local replica el directorio padre
+        const padre = path.posix.dirname(relativa);
         tareas.push({ nombre, rutaAndroid: ruta, rutaPadrePC: padre === '.' ? '' : padre });
     };
 
@@ -1226,7 +1188,6 @@ function descargarArchivo(url, destino, op, onProgreso, redirecciones = 5) {
 async function configurarWhatsApp({ serial, op, emisor, baseKB, pesoConfigKB, totalKB, indice, total }) {
     const avisos = [];
     const info = { taskName: 'Configurando WhatsApp', taskIndex: indice, taskCount: total };
-    // fraccion: 0..1 dentro del paso de configuración
     const avanzar = (fraccion, texto, forzar = true) => {
         const hechoKB = baseKB + pesoConfigKB * fraccion;
         const payload = {
@@ -1236,7 +1197,7 @@ async function configurarWhatsApp({ serial, op, emisor, baseKB, pesoConfigKB, to
             ...info
         };
         if (forzar) emisor.enviar({ type: 'progress', ...payload });
-        else emisor.progreso(payload); // durante la descarga: con límite de frecuencia
+        else emisor.progreso(payload);
         if (texto) emisor.enviar({ type: 'log', text: texto });
     };
 
@@ -1250,7 +1211,6 @@ async function configurarWhatsApp({ serial, op, emisor, baseKB, pesoConfigKB, to
         return avisos;
     }
 
-    // Coincidencia exacta: evita confundir com.whatsapp con com.whatsapp.w4b
     const instalado = lista.stdout.split(/\r?\n/).some((l) => l.trim() === `package:${WHATSAPP_PACKAGE}`);
 
     if (!instalado) {
