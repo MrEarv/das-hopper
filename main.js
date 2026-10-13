@@ -30,8 +30,8 @@ const RESULTADO_CANCELADO = () => ({
 function createWindow() {
     const win = new BrowserWindow({
         width: 1000,
-        height: 780,
-        backgroundColor: '#1e1e1e',
+        height: 700,
+       // backgroundColor: '#1e1e1e',
         show: false,
         icon: path.join(__dirname, 'assets', 'icon.png'),
         webPreferences: {

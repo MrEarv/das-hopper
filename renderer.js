@@ -308,6 +308,11 @@ function renderizarCarpetas() {
         badge.append(icono, etiqueta, quitar);
         contenedorApiladas.appendChild(badge);
     });
+    // Auto scroll
+    const listaOpciones = document.querySelector('.backup-options');
+    if (listaOpciones) {
+        listaOpciones.scrollTop = listaOpciones.scrollHeight;
+    }
 }
 
 async function cargarCarpetasAndroid() {

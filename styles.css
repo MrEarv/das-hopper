@@ -1,74 +1,71 @@
-/*
-  Variables de estilo
- */
+/* =========================================
+   1. VARIABLES DE ESTILO
+   ========================================= */
 :root {
     /* Fondos y superficies */
     --color-fondo: #10161a;
     --color-tarjeta: #182126;
-    --color-tarjeta-hover: #1e2b32; /* Para hovers en listas y opciones */
-    --color-tarjeta-activa: #132b20; /* Tinte verde oscuro para checkboxes marcados */
+    --color-tarjeta-hover: #1e2b32;
+    --color-tarjeta-activa: #132b20;
     
     /* Bordes y líneas */
     --color-borde: #2c3a41;
     --color-borde-hover: #3d5059;
 
-    /* Acento Principal (Verde Android - Respaldar) */
+    /* Acento Principal (Respaldar) */
     --color-acento: #3ddc84;
     --color-acento-rgb: 61, 220, 132;
     --color-acento-hover: #32b86e;
 
-    /* Secundario (Cian - Restaurar) */
+    /* Secundario (Restaurar) */
     --color-secundario: #35c8e8;
     --color-secundario-rgb: 53, 200, 232;
     --color-secundario-hover: #2ba5c2;
 
-    /* Estados (Peligro y Advertencia) */
+    /* Estados */
     --color-warning: #ffbd59;
-    --color-warning-rgb: 255, 189, 89;
-    
     --color-peligro: #b83b3b;
-    --color-peligro-rgb: 184, 59, 59;
     --color-peligro-hover: #922d2d;
+    --color-peligro-texto: #ff7b7b;
 
     /* Textos base */
     --texto-blanco: #ffffff;
     --texto-gris: #aaaaaa;
 }
-/* layout */
+
+/* =========================================
+   2. LAYOUT GLOBAL (Optimizado para 700px)
+   ========================================= */
 body {
     font-family: 'Verdana', Tahoma, Geneva, sans-serif;
     background-color: var(--color-fondo);
     color: var(--texto-blanco);
     user-select: none;
-    padding: 12px 20px 28px;
+    padding: 8px 20px 16px; /* Reducido para ganar altura */
     text-align: center;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
     height: 100vh;
     margin: 0;
-    overflow: hidden;
+    overflow: hidden; /* Sin scrollbars globales */
 }
 
-html {
-    height: 100%;
-    overflow: hidden;
-}
-
-input, select, textarea {
-    user-select: text;
-}
+html { height: 100%; overflow: hidden; }
+input, select, textarea { user-select: text; }
+[hidden] { display: none !important; }
 
 h1 {
     flex: 0 0 auto;
-    margin: 8px 0 4px;
+    margin: 4px 0 8px;
+    font-size: 1.5rem;
 }
 
 .container {
     display: flex;
     width: 90%;
     margin: 0 auto;
-    gap: 20px;
+    gap: 16px;
 }
 
 .container:not(#progress-container) {
@@ -77,41 +74,47 @@ h1 {
     align-items: stretch;
 }
 
-[hidden] {
-    display: none !important;
-}
-/* Paneles y tarjetas */
+/* =========================================
+   3. TARJETAS FLEXIBLES (Adiós a los recortes)
+   ========================================= */
 .card {
     background-color: var(--color-tarjeta);
-    padding: 14px;
+    padding: 12px 14px;
     border-radius: 8px;
-    margin-top: 12px;
+    display: flex;
+    flex-direction: column; /* Tarjetas elásticas */
 }
 
-#opciones_panel, #celular_status {
-    min-height: 0;
-    overflow: hidden;
-    flex-shrink: 1;
+#opciones_panel { flex: 2; overflow: hidden; }
+#celular_status { flex: 1; overflow: hidden; }
+
+/* Contenedores de vistas que ocupan el espacio restante */
+#vista-backup:not([hidden]), 
+#vista-restore:not([hidden]) {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0; /* Permite que las listas internas hagan scroll sin estirar la tarjeta */
 }
 
-#opciones_panel { flex: 2; }
-#celular_status { display: flex; flex-direction: column; flex: 1; }
-#celular-info { flex: 4; }
-#opciones { flex: 1; }
+#celular-info { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+#opcion { flex: 0 0 auto; margin-top: 10px; }
 
-/* Ilustracion celular */
+/* =========================================
+   4. ILUSTRACIÓN DEL TELÉFONO (Diseño Humano y Plano)
+   ========================================= */
 .phone-illustration {
     position: relative;
-    isolation: isolate;
-    width: 88px;
-    height: 156px;
+    width: 76px; /* Ligeramente más pequeño para pantallas de 700px */
+    height: 140px;
     margin: 0 auto 10px;
-    padding: 7px;
+    padding: 6px;
     box-sizing: border-box;
-    background: linear-gradient(135deg, var(--color-borde-hover), var(--color-borde) 45%, var(--color-fondo));
+    background: var(--color-borde); /* Fondo sólido, nada de gradientes */
     border: 2px solid var(--color-borde-hover);
-    border-radius: 22px;
-    box-shadow: 0 10px 24px rgba(0,0,0,0.5), inset 0 0 0 2px var(--color-fondo);
+    border-radius: 18px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.3); /* Sombra física, no luz */
+    transition: border-color 0.3s ease;
 }
 
 .phone-screen {
@@ -119,8 +122,8 @@ h1 {
     width: 100%;
     height: 100%;
     overflow: hidden;
-    border-radius: 14px;
-    background: linear-gradient(155deg, #1b382d 0%, var(--color-tarjeta) 55%, var(--color-fondo) 100%);
+    border-radius: 10px;
+    background: var(--color-fondo); /* Sólido oscuro */
 }
 
 .phone-camera {
@@ -128,10 +131,10 @@ h1 {
     z-index: 2;
     top: 6px;
     left: 50%;
-    width: 5px;
-    height: 5px;
+    width: 4px;
+    height: 4px;
     border-radius: 50%;
-    background: var(--color-fondo);
+    background: var(--color-borde-hover);
     transform: translateX(-50%);
 }
 
@@ -140,47 +143,33 @@ h1 {
     bottom: 5px;
     left: 50%;
     z-index: 2;
-    width: 34px;
+    width: 28px;
     height: 3px;
     border-radius: 3px;
-    background: rgba(255, 255, 255, 0.8);
+    background: rgba(255, 255, 255, 0.4);
     transform: translateX(-50%);
 }
 
-/* Resplandor cuando hay conexión (Base - Cian) */
-#celular_status.device-connected .phone-illustration::before {
-    position: absolute;
-    z-index: -1;
-    inset: -5px;
-    border: 2px solid var(--color-secundario);
-    border-radius: 26px;
-    box-shadow: 0 0 10px var(--color-secundario), 0 0 24px rgba(var(--color-secundario-rgb), 0.8), 0 0 42px rgba(var(--color-secundario-rgb), 0.6);
-    content: "";
-    animation: phone-glow 1.8s ease-in-out infinite;
+/* Indicador de conexión elegante (Solo cambia el borde, sin auras gigantes) */
+#celular_status.device-connected .phone-illustration {
+    border-color: var(--color-secundario);
 }
-
-@keyframes phone-glow {
-    0%, 100% { opacity: 0.55; box-shadow: 0 0 8px var(--color-secundario), 0 0 18px rgba(var(--color-secundario-rgb), 0.8), 0 0 32px rgba(var(--color-secundario-rgb), 0.5); }
-    50% { opacity: 1; box-shadow: 0 0 13px var(--color-secundario), 0 0 30px rgba(var(--color-secundario-rgb), 0.9), 0 0 48px rgba(var(--color-secundario-rgb), 0.8); }
-}
-
-/* Resplandor general de operaciones (Ámbar) */
-body.backup-running #celular_status.device-connected .phone-illustration::before {
+body.backup-running #celular_status.device-connected .phone-illustration {
     border-color: var(--color-warning);
-    box-shadow: 0 0 10px var(--color-warning), 0 0 24px rgba(var(--color-warning-rgb), 0.9), 0 0 42px rgba(var(--color-warning-rgb), 0.6);
-    animation: none;
-    opacity: 1;
 }
-/* Tabs */
+
+/* =========================================
+   5. PESTAÑAS (TABS)
+   ========================================= */
 .tab-bar {
     display: flex;
-    margin-bottom: 15px;
+    flex: 0 0 auto;
+    margin-bottom: 12px;
     border-bottom: 1px solid var(--color-borde);
 }
 
 .tab {
     flex: 1;
-    width: 100%;
     margin: 0;
     padding: 10px;
     background: transparent;
@@ -192,552 +181,302 @@ body.backup-running #celular_status.device-connected .phone-illustration::before
 
 .tab:hover { background: var(--color-tarjeta-hover); color: var(--texto-blanco); }
 .tab.active { border-bottom-color: var(--color-acento); color: var(--texto-blanco); font-weight: bold; }
+#tab-restore.active { border-bottom-color: var(--color-secundario); }
 .tab:disabled { background: transparent; color: var(--color-borde-hover); }
-.tab.active:disabled { color: var(--texto-gris); }
-/* Opciones de respaldo - Checkboxes */
+
+h2 { margin: 0 0 10px 0; font-size: 1.1rem; flex: 0 0 auto; }
+
+/* =========================================
+   6. OPCIONES DE RESPALDO (Scroll interno inteligente)
+   ========================================= */
 .backup-options {
-    display: grid;
-    gap: 8px;
-    margin: 12px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 0;
+    padding-right: 6px; /* Espacio para scrollbar */
     text-align: left;
+    flex: 1;
+    overflow-y: auto; /* Scroll exclusivo para las opciones */
+    min-height: 0;
 }
 
 .backup-option {
     display: flex;
     align-items: center;
-    gap: 14px;
-    padding: 12px 16px;
+    gap: 12px;
+    padding: 10px 14px;
     border: 1px solid transparent;
     border-radius: 8px;
     background-color: var(--color-tarjeta-hover);
     cursor: pointer;
     transition: all 0.2s ease;
+    flex: 0 0 auto;
 }
 
-.backup-option:hover {
-    background-color: var(--color-borde);
-    border-color: var(--color-borde-hover);
-}
+.backup-option:hover { background-color: var(--color-borde); border-color: var(--color-borde-hover); }
+.backup-option:has(input:checked) { background-color: var(--color-tarjeta-activa); border-color: var(--color-acento); }
+.backup-option input[type="checkbox"] { display: none; }
 
-.backup-option:has(input:checked) {
-    background-color: var(--color-tarjeta-activa);
-    border-color: var(--color-acento);
-}
+.backup-icon { display: inline-flex; flex: 0 0 24px; align-items: center; justify-content: center; }
+.backup-icon svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
 
-.backup-option input[type="checkbox"] {
-    appearance: none !important;
-    -webkit-appearance: none !important;
-    position: absolute !important;
-    opacity: 0 !important;
-    width: 0 !important;
-    height: 0 !important;
-    pointer-events: none;
-}
-
-.backup-icon {
-    display: inline-flex;
-    flex: 0 0 28px;
-    align-items: center;
-    justify-content: center;
-}
-
-.backup-icon svg {
-    width: 22px;
-    height: 22px;
-    fill: none;
-    stroke: currentColor;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    stroke-width: 1.5;
-}
-
-/* Reducción de colores sueltos para los íconos */
 .backup-icon-whatsapp { color: var(--color-acento); }
 .backup-icon-telegram { color: var(--color-secundario); }
 .backup-icon-photos   { color: var(--color-warning); }
 .backup-icon-downloads{ color: var(--texto-gris); }
 
 .checkmark {
-    display: inline-flex;
-    flex: 0 0 20px;
-    align-items: center;
-    justify-content: center;
-    width: 20px;
-    height: 20px;
-    border: 2px solid var(--color-borde);
-    border-radius: 5px;
-    background-color: var(--color-tarjeta);
-    transition: background-color 160ms ease, border-color 160ms ease;
-    margin-left: auto;
+    display: inline-flex; flex: 0 0 18px; align-items: center; justify-content: center;
+    width: 18px; height: 18px; border: 2px solid var(--color-borde);
+    border-radius: 4px; background-color: var(--color-tarjeta);
+    margin-left: auto; transition: all 0.2s ease;
 }
-
 .checkmark::after {
-    width: 5px;
-    height: 10px;
-    border: solid var(--color-fondo);
-    border-width: 0 2px 2px 0;
-    content: "";
-    opacity: 0;
-    transform: rotate(45deg) scale(0.5);
-    transition: opacity 160ms ease, transform 160ms ease;
+    content: ""; width: 4px; height: 8px; border: solid var(--color-fondo);
+    border-width: 0 2px 2px 0; opacity: 0; transform: rotate(45deg) scale(0.5);
+    transition: all 0.2s ease;
 }
 
-.backup-option input:checked ~ .checkmark {
-    border-color: var(--color-acento);
-    background-color: var(--color-acento);
-}
+.backup-option input:checked ~ .checkmark { border-color: var(--color-acento); background-color: var(--color-acento); }
+.backup-option input:checked ~ .checkmark::after { opacity: 1; transform: rotate(45deg) scale(1); }
+.option-text { color: #ddd; font-size: 0.95rem; }
 
-.backup-option input:checked ~ .checkmark::after {
-    opacity: 1;
-    transform: rotate(45deg) scale(1);
-}
-
-.option-text {
-    color: #ddd;
-    line-height: 1.4;
-}
-/* Carpetas extra */
+/* =========================================
+   7. CARPETAS EXTRA
+   ========================================= */
 .extra-folders-section {
-    margin-top: 10px;
-    padding-top: 10px;
-    border-top: 1px solid var(--color-borde);
+    margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--color-borde);
+    flex: 0 0 auto;
 }
+.extra-folders-controls { display: flex; gap: 8px; align-items: stretch; margin-top: 6px; }
 
-.extra-folders-title { margin-bottom: 6px; }
-
-.extra-folders-controls {
-    display: flex;
-    gap: 10px;
-    align-items: stretch;
-}
-
-#android-folders-list {
-    flex: 1;
-    padding: 10px;
-    border-radius: 5px;
-    outline: none;
-}
+#android-folders-list { flex: 1; padding: 8px; border-radius: 5px; outline: none; }
 
 #btn-add-folder {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 7px;
-    margin: 0;
-    width: auto;
-    background-color: var(--color-acento);
-    color: var(--color-fondo);
-    padding: 10px 15px;
+    display: inline-flex; align-items: center; gap: 6px;
+    width: auto; padding: 8px 12px; margin: 0;
+    background-color: var(--color-acento); color: var(--color-fondo);
 }
-
 #btn-add-folder:hover { background-color: var(--color-acento-hover); }
+#btn-add-folder svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-width: 2; }
 
-#btn-add-folder svg {
-    width: 18px;
-    height: 18px;
-    fill: none;
-    stroke: currentColor;
-    stroke-linecap: round;
-    stroke-width: 2;
-}
-
-#carpetas-apiladas {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-top: 8px;
-}
+#carpetas-apiladas { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
 
 .folder-badge {
-    background-color: var(--color-tarjeta-hover);
-    border: 1px solid var(--color-borde);
-    padding: 6px 12px;
-    border-radius: 15px;
-    font-size: 14px;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    color: #ddd;
+    background-color: var(--color-tarjeta-hover); border: 1px solid var(--color-borde);
+    padding: 4px 10px; border-radius: 12px; font-size: 13px;
+    display: inline-flex; align-items: center; gap: 6px; color: #ddd;
 }
-
-.folder-badge-icon {
-    display: inline-flex;
-    flex: 0 0 18px;
-    align-items: center;
-    justify-content: center;
-    color: var(--texto-gris);
-}
-
-.folder-badge-icon svg {
-    width: 18px;
-    height: 18px;
-    fill: none;
-    stroke: currentColor;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    stroke-width: 1.8;
-}
-
+.folder-badge-icon svg { width: 16px; height: 16px; fill: none; stroke: var(--texto-gris); stroke-width: 1.8; }
 .folder-badge button.quitar {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--color-peligro);
-    background: transparent;
-    border: 0;
-    cursor: pointer;
-    margin: 0 -6px 0 0;
-    padding: 4px;
-    width: 24px;
-    height: 24px;
+    background: transparent; color: var(--color-peligro); padding: 2px;
+    margin: 0 -4px 0 0; width: 20px; height: 20px;
 }
+.folder-badge .quitar svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; }
+.folder-badge button.quitar:hover { color: var(--color-peligro-hover); }
 
-.folder-badge .quitar svg {
-    width: 16px;
-    height: 16px;
-    fill: none;
-    stroke: currentColor;
-    stroke-linecap: round;
-    stroke-width: 2;
-}
-
-.folder-badge button.quitar:hover { color: var(--color-peligro-hover); background: rgba(255,255,255,0.05); }
-
-body.backup-running .folder-badge .quitar {
-    pointer-events: none;
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-/* inputs */
+/* =========================================
+   8. INPUTS Y SCROLLBARS
+   ========================================= */
+/* =========================================
+   8. INPUTS Y SCROLLBARS
+   ========================================= */
 input[type="text"], select {
+    box-sizing: border-box; /* <--- LA CLAVE PARA QUE NO EMpuje EL BOTÓN */
+    width: 100%; /* <--- Mantiene los inputs dentro del límite */
     background-color: var(--color-fondo) !important;
     border: 1px solid var(--color-borde) !important;
     border-radius: 6px !important;
-    padding: 12px 14px !important;
+    padding: 10px 12px !important;
     color: var(--texto-blanco) !important;
-    font-size: 14px;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
-    box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+    font-size: 13px;
 }
-
-input[type="text"]:focus, select:focus {
-    border-color: var(--color-acento) !important;
-    outline: none;
-    box-shadow: inset 0 2px 4px rgba(0,0,0,0.1), 0 0 0 2px rgba(var(--color-acento-rgb), 0.2);
-}
-
-::-webkit-scrollbar { width: 8px; }
-::-webkit-scrollbar-track { background: var(--color-fondo); }
+input[type="text"]:focus, select:focus { border-color: var(--color-acento) !important; outline: none; }
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--color-fondo); border-radius: 4px; }
 ::-webkit-scrollbar-thumb { background: var(--color-borde); border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--color-borde-hover); }
 
-/* Controles Base */
-#backup-name { width: 84%; margin-bottom: 10px; }
-.backup-destination { display: flex; align-items: stretch; gap: 8px; margin: 0 auto 10px; width: 90%; }
-#backup-path { flex: 1; min-width: 0; }
+/* =========================================
+   9. VISTA RESTAURAR (Lista flexible)
+   ========================================= */
+.restore-hint { margin-bottom: 8px; font-size: 0.9rem; flex: 0 0 auto; text-align: left; }
+
+.lista-respaldos {
+    background: var(--color-fondo);
+    border: 1px solid var(--color-borde);
+    border-radius: 5px;
+    flex: 1; /* Ocupa el espacio sin romper la tarjeta */
+    overflow-y: auto; /* Scroll solo interno */
+    min-height: 100px; 
+    text-align: left;
+}
+
+.lista-mensaje { padding: 15px; color: var(--texto-gris); text-align: center; }
+.lista-mensaje.error, #status.status-error { color: var(--color-peligro-texto); }
+
+.backup-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px; border-bottom: 1px solid var(--color-borde);
+    cursor: pointer; word-break: break-all; transition: background-color 0.2s;
+    font-size: 0.9rem;
+}
+
+.backup-item-icon { display: inline-flex; color: var(--color-secundario); }
+.backup-item-icon svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; }
+.backup-item:hover { background-color: var(--color-tarjeta-hover); }
+.backup-item.selected, .backup-item.selected:hover {
+    background: rgba(var(--color-secundario-rgb), 0.14);
+    box-shadow: inset 3px 0 0 var(--color-secundario);
+    color: var(--texto-blanco);
+}
+body.backup-running .backup-item { cursor: not-allowed; opacity: 0.6; }
+
+.backup-list-actions { display: flex; justify-content: flex-end; margin-top: 10px; flex: 0 0 auto; }
+.backup-list-actions button { padding: 8px 12px; margin: 0; width: auto; font-size: 14px; display: inline-flex; align-items: center; gap: 6px; }
+.danger-action { background: var(--color-peligro); color: var(--texto-blanco); }
+
+/* Agrega este bloque para arreglar el ícono */
+.backup-list-actions svg { 
+    width: 18px; 
+    height: 18px; 
+    fill: none; /* <-- Esto quita el bloque negro */
+    stroke: currentColor; 
+    stroke-width: 2; 
+    stroke-linecap: round; 
+    stroke-linejoin: round; 
+}
+.danger-action { background: var(--color-peligro); color: var(--texto-blanco); }
+
+/* =========================================
+   10. BOTONES GENERALES DE ACCIÓN (Flat UI)
+   ========================================= */
+button {
+    background-color: var(--color-acento);
+    color: var(--color-fondo);
+    border: none;
+    padding: 12px 20px; /* Reducido para ahorrar espacio */
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15); /* Sombra física sutil */
+}
+
+button:hover:not(:disabled) { box-shadow: 0 4px 8px rgba(0,0,0,0.25); transform: translateY(-1px); }
+button:active:not(:disabled) { transform: translateY(0); box-shadow: 0 1px 2px rgba(0,0,0,0.15); }
+button:disabled { background-color: var(--color-borde) !important; color: var(--texto-gris) !important; box-shadow: none !important; cursor: not-allowed; }
+
+/* Botón Principal Inteligente */
+button#backup-btn { width: 100%; margin: 0; padding: 14px 20px; font-size: 15px; }
+
+/* Modos específicos sin neones */
+button.cancel-backup { background-color: var(--color-peligro) !important; color: var(--texto-blanco) !important; }
+#backup-btn.restore-mode { background-color: var(--color-secundario); }
+#backup-btn.restore-mode:hover:not(:disabled) { background-color: var(--color-secundario-hover); }
+#btn-add-folder { box-shadow: none; }
+
+/* Formularios laterales */
+#backup-name { width: 100%; margin-bottom: 8px; box-sizing: border-box; }
+.backup-destination { display: flex; gap: 8px; margin-bottom: 8px; width: 100%; }
 #select-backup-path {
     flex: 0 0 auto;
+    white-space: nowrap;
     width: auto;
     margin: 0;
     padding: 10px 12px;
     font-size: 14px;
     background-color: var(--color-tarjeta-hover);
     color: var(--texto-blanco);
+    box-shadow: none;
 }
-#select-backup-path:hover { background-color: var(--color-borde-hover); }
-
-/*Botones de accion*/
-button {
-    background-color: var(--color-acento);
-    color: var(--color-fondo);
-    border: none;
-    padding: 15px 30px;
-    font-size: 16px;
-    border-radius: 5px;
-    cursor: pointer;
-    margin: 10px;
-    width: 80%;
-}
-
-button:hover { background-color: var(--color-acento-hover); }
-button:disabled { background-color: var(--color-borde); color: var(--texto-gris); cursor: not-allowed; }
-
-/* Botón Principal Inteligente (Respaldar por defecto) */
-button#backup-btn {
-    font-size: 15px;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-    padding: 14px 24px;
-    margin: 15px 0 10px;
-    width: 100%;
-    box-sizing: border-box;
-    border-radius: 6px;
-    box-shadow: 0 4px 12px rgba(var(--color-acento-rgb), 0.3);
-    transition: all 0.2s ease;
-}
-
-button#backup-btn:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(var(--color-acento-rgb), 0.5);
-}
-
-button#backup-btn:active:not(:disabled) { transform: translateY(1px); }
-
-/* Botón Mudo cuando está bloqueado */
-button#backup-btn:disabled {
-    background-color: var(--color-borde) !important;
-    box-shadow: none !important;
-    color: var(--texto-gris) !important;
-    cursor: not-allowed !important;
-    transform: none !important;
-}
-
-/* Modo Cancelar (Rojo) */
-button.cancel-backup {
-    background-color: var(--color-peligro) !important;
-    color: var(--texto-blanco) !important;
-    box-shadow: 0 4px 12px rgba(var(--color-peligro-rgb), 0.4) !important;
-}
-
-button.cancel-backup:hover:not(:disabled) {
-    background-color: var(--color-peligro-hover) !important;
-    box-shadow: 0 6px 16px rgba(var(--color-peligro-rgb), 0.5) !important;
-}
-
-/* Modo Restaurar (Cian) */
-#backup-btn.restore-mode {
-    background-color: var(--color-secundario);
-    box-shadow: 0 4px 12px rgba(var(--color-secundario-rgb), 0.4);
-}
-
-#backup-btn.restore-mode:hover:not(:disabled) {
-    background-color: var(--color-secundario-hover);
-    box-shadow: 0 6px 16px rgba(var(--color-secundario-rgb), 0.5);
-}
-
-/* restaurar */
-.restore-hint { margin-bottom: 10px; }
-
-.lista-respaldos {
-    background: var(--color-fondo);
-    border: 1px solid var(--color-borde);
-    border-radius: 5px;
-    height: 300px;
-    overflow-y: auto;
-    text-align: left;
-}
-
-.lista-mensaje { padding: 15px; color: var(--texto-gris); text-align: center; }
-.lista-mensaje.error { color: var(--color-peligro); }
-
-.backup-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 12px 15px;
-    border-bottom: 1px solid var(--color-borde);
-    cursor: pointer;
-    word-break: break-all;
-    transition: background-color 0.2s;
-}
-
-.backup-item-icon {
-    display: inline-flex;
-    flex: 0 0 20px;
-    align-items: center;
-    justify-content: center;
-    color: var(--color-secundario);
-}
-
-.backup-item-icon svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.8; }
-.backup-item:hover { background-color: var(--color-tarjeta-hover); }
-.backup-item.selected, .backup-item.selected:hover { background-color: var(--color-acento); color: var(--color-fondo); }
-.backup-item.selected .backup-item-icon { color: var(--color-fondo); }
-
-body.backup-running .backup-item { cursor: not-allowed; opacity: 0.6; }
-
-.backup-list-actions { display: flex; justify-content: flex-end; margin-top: 10px; }
-.backup-list-actions button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: auto; margin: 0; padding: 9px 12px; }
-.backup-list-actions svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.8; }
-.danger-action { background: var(--color-peligro); color: var(--texto-blanco); }
-.danger-action:hover { background: var(--color-peligro-hover); }
-.backup-list-actions button:disabled { opacity: 0.5; }
-
-/* barra y texto*/
-#status { margin-top: 15px; color: var(--texto-gris); transition: color 160ms ease; }
-#status.status-info { color: var(--texto-gris); }
+/* =========================================
+   11. STATUS Y PROGRESS BAR
+   ========================================= */
+#status { margin-top: 8px; color: var(--texto-gris); font-size: 0.9rem; }
 #status.status-success, .success { color: var(--color-acento) !important; font-weight: bold; }
-#status.status-error { color: var(--color-peligro); font-weight: bold; }
 #status.status-warning { color: var(--color-warning); font-weight: bold; }
 
 #progress-container {
-    display: flex;
-    flex: 0 0 auto;
-    width: 90%;
-    margin: auto auto 0;
-    visibility: hidden;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 180ms ease;
+    display: flex; flex: 0 0 auto; width: 90%; margin: 16px auto 0;
+    visibility: hidden; opacity: 0; transition: opacity 180ms ease;
 }
-
-#progress-container.progress-visible { visibility: visible; opacity: 1; pointer-events: auto; }
-#progress-card { flex: 1; min-width: 0; text-align: left; padding-top: 12px; padding-bottom: 12px; }
+#progress-container.progress-visible { visibility: visible; opacity: 1; }
+#progress-card { flex: 1; padding: 10px 14px; text-align: left; }
 
 #progress-bar-container {
-    position: relative;
-    width: 100%;
-    height: 14px;
-    overflow: hidden;
-    border: 1px solid var(--color-borde);
-    border-radius: 8px;
-    background-color: var(--color-fondo);
+    position: relative; width: 100%; height: 12px;
+    border: 1px solid var(--color-borde); border-radius: 6px; background-color: var(--color-fondo); overflow: hidden;
 }
-
 #progress-bar-container.progress-running::after {
-    position: absolute;
-    top: 0; bottom: 0; left: 0;
-    width: 22%;
-    border-radius: inherit;
+    position: absolute; top: 0; bottom: 0; left: 0; width: 22%;
     background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-    content: "";
-    animation: progress-indeterminate 1.2s ease-in-out infinite;
+    content: ""; animation: progress-indeterminate 1.2s ease-in-out infinite;
 }
-
-@keyframes progress-indeterminate {
-    from { transform: translateX(-100%); }
-    to { transform: translateX(455%); }
-}
+@keyframes progress-indeterminate { from { transform: translateX(-100%); } to { transform: translateX(455%); } }
 
 #progress-bar {
-    width: 0;
-    height: 100%;
-    border-radius: inherit;
+    width: 0; height: 100%;
     background: linear-gradient(90deg, var(--color-acento), var(--color-secundario));
-    transition: width 450ms linear, background-color 180ms ease;
+    transition: width 450ms linear;
 }
-
 #progress-bar.progress-error { background: var(--color-peligro); }
 #progress-bar.progress-cancelled { background: var(--color-warning); }
 
-#progress-text, #backup-status { min-height: 1.2em; color: #bbb; }
-#progress-text { margin: 8px 0 0; }
+#progress-text { margin: 6px 0 0; font-size: 0.85rem; color: #bbb; }
 
-/* modal de confirmacion */
-.modal-backdrop {
-    position: fixed;
-    z-index: 10;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    background: rgba(0,0,0,0.6);
-    backdrop-filter: blur(3px);
-}
-
-.confirm-modal {
-    width: min(100%, 420px);
-    padding: 24px;
-    border: 1px solid var(--color-borde);
-    border-radius: 12px;
-    background: var(--color-tarjeta);
-    box-shadow: 0 18px 55px rgba(0,0,0,0.6);
-    text-align: left;
-}
-
-.confirm-modal h2 { margin: 0 0 12px; font-size: 20px; }
-.confirm-modal p { margin: 0; color: #ccc; line-height: 1.55; white-space: pre-line; overflow-wrap: anywhere; }
-
-.confirm-modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px; }
-.confirm-modal-actions button { width: auto; min-width: 96px; margin: 0; padding: 10px 16px; }
-
-.confirm-modal-actions .modal-cancel {
-    border: 1px solid var(--color-borde);
-    background: var(--color-tarjeta-hover);
-    color: var(--texto-blanco);
-}
-
-.confirm-modal-actions .modal-cancel:hover { background: var(--color-borde-hover); }
-
-/* icono android |*/
+/* =========================================
+   12. ICONO ANDROID & FLECHAS ANIMADAS
+   ========================================= */
 .phone-android-icon {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 64px; 
-    height: 64px;
-    color: var(--color-acento);
-    transform: translate(-50%, -50%);
-    transition: color 0.3s ease;
+    position: absolute; top: 50%; left: 50%; width: 54px; height: 54px;
+    color: var(--texto-gris); /* Color neutro en reposo */
+    transform: translate(-50%, -50%); transition: color 0.3s ease;
 }
-
 .phone-android-icon circle { fill: currentColor; stroke: none; }
 
-.phone-android-icon .arrow-backup,
-.phone-android-icon .arrow-restore {
-    transition: opacity 0.4s ease, filter 0.4s ease;
-    opacity: 0.15; 
-}
-
-/* Modificamos los trazos estáticos para heredar color en las flechas */
+.phone-android-icon .arrow-backup, .phone-android-icon .arrow-restore { opacity: 0.15; transition: opacity 0.4s ease; }
 .phone-android-icon .arrow-backup path, .phone-android-icon .arrow-backup polyline { stroke: var(--color-acento); }
 .phone-android-icon .arrow-restore path, .phone-android-icon .arrow-restore polyline { stroke: var(--color-secundario); }
 
-@keyframes android-color-backup {
-    0%, 100% { color: var(--color-acento); transform: translate(-50%, -50%) scale(1); }
-    50% { color: var(--color-warning); transform: translate(-50%, -50%) scale(1.05); }
-}
+/* Sin latidos, solo cambio de color estable y sólido */
+body.is-backing-up .phone-android-icon { color: var(--color-warning); }
+body.is-restoring .phone-android-icon { color: var(--color-secundario); }
 
-@keyframes android-color-restore {
-    0%, 100% { color: var(--color-acento); transform: translate(-50%, -50%) scale(0.98); opacity: 0.8; }
-    50% { color: var(--color-secundario); transform: translate(-50%, -50%) scale(1.1); opacity: 1; filter: drop-shadow(0 0 6px rgba(var(--color-secundario-rgb), 0.4)); }
-}
-
-body.is-backing-up .phone-android-icon { animation: android-color-backup 1.5s ease-in-out infinite; }
-body.is-restoring .phone-android-icon { animation: android-color-restore 1.2s cubic-bezier(0.25, 0.8, 0.25, 1) infinite; }
-
-body.is-backing-up .phone-android-icon .arrow-backup {
-    opacity: 1;
-    filter: drop-shadow(0 0 6px var(--color-acento));
-}
+body.is-backing-up .phone-android-icon .arrow-backup { opacity: 1; }
 body.is-backing-up .phone-android-icon .arrow-restore { opacity: 0; }
-body.is-backing-up .phone-android-icon .arrow-backup .data-line {
-    stroke-dasharray: 8 6;
-    animation: data-flow 0.5s linear infinite;
-}
+body.is-backing-up .phone-android-icon .arrow-backup .data-line { stroke-dasharray: 8 6; animation: data-flow 0.5s linear infinite; }
 
-body.is-restoring .phone-android-icon .arrow-restore {
-    opacity: 1;
-    filter: drop-shadow(0 0 6px var(--color-secundario));
-}
+body.is-restoring .phone-android-icon .arrow-restore { opacity: 1; }
 body.is-restoring .phone-android-icon .arrow-backup { opacity: 0; }
-body.is-restoring .phone-android-icon .arrow-restore .data-line {
-    stroke-dasharray: 8 6;
-    animation: data-flow 0.5s linear infinite;
-}
+body.is-restoring .phone-android-icon .arrow-restore .data-line { stroke-dasharray: 8 6; animation: data-flow 0.5s linear infinite; }
 
-body.backup-running .phone-android-icon .sync-arrows {
-    transform-origin: center;
-    animation: spin-arrows 2s linear infinite;
-}
-
+body.backup-running .phone-android-icon .sync-arrows { transform-origin: center; animation: spin-arrows 2s linear infinite; }
 @keyframes spin-arrows { 100% { transform: rotate(-360deg); } }
 @keyframes data-flow { to { stroke-dashoffset: -14; } }
 
-/* reducir movimiento */
+/* =========================================
+   13. MODAL (ADVERTENCIAS)
+   ========================================= */
+.modal-backdrop {
+    position: fixed; z-index: 10; inset: 0; display: flex; align-items: center; justify-content: center;
+    padding: 20px; background: rgba(0,0,0,0.6); backdrop-filter: blur(3px);
+}
+.confirm-modal {
+    width: min(100%, 400px); padding: 20px; border: 1px solid var(--color-borde);
+    border-radius: 12px; background: var(--color-tarjeta); box-shadow: 0 18px 55px rgba(0,0,0,0.6); text-align: left;
+}
+.confirm-modal h2 { margin: 0 0 12px; font-size: 18px; }
+.confirm-modal p { margin: 0; color: #ccc; font-size: 14px; line-height: 1.5; white-space: pre-line; }
+.confirm-modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+.confirm-modal-actions button { width: auto; min-width: 90px; margin: 0; padding: 10px 16px; box-shadow: none; }
+.confirm-modal-actions .modal-cancel { border: 1px solid var(--color-borde); background: var(--color-tarjeta-hover); color: var(--texto-blanco); }
+
+/* Reducir movimiento */
 @media (prefers-reduced-motion: reduce) {
-    #celular_status.device-connected .phone-illustration::before { animation: none; }
     #progress-bar { transition: none; }
-    #progress-bar-container.progress-running::after {
-        animation: none;
-        transform: translateX(150%);
-    }
-    body.is-backing-up .phone-android-icon, 
-    body.is-restoring .phone-android-icon,
-    body.backup-running .phone-android-icon .sync-arrows,
-    body.is-backing-up .phone-android-icon .arrow-backup .data-line,
-    body.is-restoring .phone-android-icon .arrow-restore .data-line {
-        animation: none;
-    }
+    #progress-bar-container.progress-running::after, body.backup-running .phone-android-icon .sync-arrows,
+    body.is-backing-up .phone-android-icon .arrow-backup .data-line, body.is-restoring .phone-android-icon .arrow-restore .data-line { animation: none; }
 }
