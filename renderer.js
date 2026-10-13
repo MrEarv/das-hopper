@@ -1,5 +1,3 @@
-const { ipcRenderer } = require('electron');
-const path = require('path');
 const btnBackup = document.getElementById('backup-btn');
 const deviceStatus = document.getElementById('device-status');
 const statusText = document.getElementById('status');
@@ -240,7 +238,7 @@ document.addEventListener('keydown', (event) => {
 // ---------------------------------------------------------------------------
 selectBackupPathButton.addEventListener('click', async () => {
     try {
-        const carpeta = await ipcRenderer.invoke('select-backup-folder');
+        const carpeta = await window.api.selectBackupFolder();
         if (carpeta) {
             backupPathInput.value = carpeta;
             try { localStorage.setItem(CLAVE_RUTA, carpeta); } catch (e) { /* ignorar */ }
@@ -315,7 +313,7 @@ function renderizarCarpetas() {
 async function cargarCarpetasAndroid() {
     selectFolders.innerHTML = '<option value="">Cargando...</option>';
 
-    const respuesta = await ipcRenderer.invoke('get-android-folders');
+    const respuesta = await window.api.getAndroidFolders();
 
     if (respuesta.success && respuesta.carpetas.length > 0) {
         selectFolders.replaceChildren();
@@ -339,7 +337,7 @@ const MENSAJES_DESCONEXION = {
     'adb-error': 'No se pudo ejecutar ADB. Verifica que exista bin/adb.exe.'
 };
 
-ipcRenderer.on('estado-dispositivo', (event, data) => {
+window.api.onEstadoDispositivo((data) => {
     if (data.conectado) {
         dispositivoIdActual = String(data.id || '');
         phoneCard.classList.add('device-connected');
@@ -412,7 +410,7 @@ async function cargarListaRespaldos() {
     }
 
     listaRespaldos.replaceChildren(crearMensajeLista('Buscando respaldos...'));
-    const respuesta = await ipcRenderer.invoke('get-backups-list', carpetaBase);
+    const respuesta = await window.api.getBackupsList(carpetaBase);
 
     if (!respuesta.success) {
         listaRespaldos.replaceChildren(crearMensajeLista(`No se pudo leer la carpeta: ${respuesta.msg}`, 'error'));
@@ -476,7 +474,7 @@ deleteBackupButton.addEventListener('click', async () => {
 
     deleteBackupButton.disabled = true;
     try {
-        const respuesta = await ipcRenderer.invoke('delete-backup', {
+        const respuesta = await window.api.deleteBackup({
             carpetaBase: backupPathInput.value,
             nombreRespaldo
         });
@@ -513,7 +511,7 @@ async function ejecutarOperacionUI({ tipo, canal, payload, estadoInicial, textoI
     let respuesta;
     const inicio = performance.now();
     try {
-        respuesta = await ipcRenderer.invoke(canal, payload);
+        respuesta = await window.api[canal === 'start-backup' ? 'startBackup' : 'startRestore'](payload);
     } catch (error) {
         respuesta = { success: false, msg: error.message };
     }
@@ -568,7 +566,7 @@ async function cancelarOperacion() {
     progressText.innerText = 'Cancelando...';
 
     try {
-        const resultado = await ipcRenderer.invoke('cancel-operation');
+        const resultado = await window.api.cancelOperation();
         if (!resultado.success && operacionEnCurso) {
             cancelacionEnCurso = false;
             actualizarBoton();
@@ -616,7 +614,7 @@ async function iniciarRespaldo() {
 
     let actualizarExistente = false;
     try {
-        const comprobacion = await ipcRenderer.invoke('check-backup-target', {
+        const comprobacion = await window.api.checkBackupTarget({
             carpetaBase: carpetaDestino,
             nombreBackup
         });
@@ -672,7 +670,7 @@ async function iniciarRestauracion() {
     await ejecutarOperacionUI({
         tipo: 'restore',
         canal: 'start-restore',
-        payload: { rutaRespaldoPC: path.join(backupPathInput.value, respaldoSeleccionado) },
+        payload: { rutaRespaldoPC: window.api.joinPath(backupPathInput.value, respaldoSeleccionado) },
         estadoInicial: `Restaurando desde: ${respaldoSeleccionado}. No desconectes el cable.`,
         textoInicial: 'Preparando restauración...'
     });
@@ -697,7 +695,7 @@ function textoTarea(u) {
     return `${u.taskName} (${u.taskIndex + 1} de ${u.taskCount})`;
 }
 
-ipcRenderer.on('backup-progress', (event, u) => {
+window.api.onBackupProgress((u) => {
     if (!operacionEnCurso || cancelacionEnCurso) return;
 
     const verbo = operacionEnCurso === 'restore' ? 'Restaurando' : 'Respaldando';

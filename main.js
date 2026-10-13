@@ -31,12 +31,14 @@ function createWindow() {
     const win = new BrowserWindow({
         width: 1000,
         height: 780,
-        backgroundColor: '#10161a',
+        backgroundColor: '#1e1e1e',
         show: false,
         icon: path.join(__dirname, 'assets', 'icon.png'),
         webPreferences: {
-            nodeIntegration: true,
-            contextIsolation: false
+           // sandbox: true,
+            nodeIntegration: false, // <-- BLOQUEADO: El HTML ya no tiene acceso a Node
+            contextIsolation: true, // <-- ACTIVADO: Separación estricta de contextos
+            preload: path.join(__dirname, 'preload.js') // <-- Inyectamos la aduana
         },
         frame: true,
         autoHideMenuBar: true,
@@ -45,7 +47,7 @@ function createWindow() {
 
     win.once('ready-to-show', () => win.show());
     win.loadFile('index.html');
-    iniciarMonitorADB(win);    
+    iniciarMonitorADB(win);
 }
 app.whenReady().then(createWindow);
 app.on('window-all-closed', () => app.quit());
