@@ -1,71 +1,34 @@
-# Das-Hopper
+<div align="center">
+  <img src="./assets/icon.png" alt="Das-Hopper Logo" width="120">
+  <h1>Das-Hopper ADB Tool</h1>
+  <p><b>Una herramienta gráfica, minimalista y profesional para respaldos de Android por ADB.</b></p>
+</div>
 
-Aplicación de escritorio para Windows que utiliza Android Debug Bridge (ADB) para respaldar y restaurar archivos entre un dispositivo Android y el equipo.
+---
 
-## Funciones
+Das-Hopper es una aplicación de escritorio diseñada para hacer respaldos y restauraciones de dispositivos Android de forma segura, rápida y sin depender de la nube ni del protocolo MTP; que para varias archivos o carpetas completas se queda muy lento, llegando hasta atorarse indefinidamente. 
 
-- Respaldar las carpetas de medios de WhatsApp, carpetas de Telegram, DCIM y Descargas.
-- Añadir otras carpetas disponibles en el almacenamiento compartido del dispositivo.
-- Guardar respaldos en una ubicación elegida y actualizar uno existente sin borrar los archivos que no se vuelvan a copiar.
-- Restaurar las carpetas de un respaldo, con progreso y opción para cancelar.
-- Instalar WhatsApp y solicitar permisos de almacenamiento durante la restauración si el respaldo contiene `Android/media/com.whatsapp`.
+## Características Principales
 
-## Requisitos
+- **Arquitectura Híbrida Inteligente:** Ahorra tiempo sincronizando (`--sync`) archivos pesados como la galería (DCIM) y las descargas, mientras fuerza la sobrescritura exacta de bases de datos críticas (como WhatsApp) para evitar corrupción.
+- **Instalación de WhatsApp Offline:** Descarga, instala y aplica los permisos necesarios para WhatsApp automáticamente durante la restauración.
+- **Carpetas Extra Personalizadas:** Explora y añade directorios adicionales directamente desde la memoria de tu dispositivo.
+- **Portabilidad:** Disponible en instalador clásico o como versión *Portable* para llevar en un USB.
+- **Diseño Moderno:** Interfaz plana (Flat UI) y fluida, construida con Electron y CSS nativo.
 
-- Windows.
-- Un dispositivo Android con **Depuración USB** habilitada.
-- Una conexión a Internet si es necesario descargar el APK de WhatsApp durante una restauración.
+## Instalación y Uso
 
-Al conectar el dispositivo, acepta en el teléfono la solicitud para autorizar la depuración USB. Si hay más de un dispositivo listo conectado, la aplicación puede elegir uno automáticamente; conecta solo el dispositivo que quieras usar.
+1. Ve a la sección de [Releases](../../releases/latest) a la derecha de esta página.
+2. Descarga `Das-Hopper-Setup-1.0.0.exe` (para instalar) o la versión `Portable`.
+3. Conecta tu celular a la PC con un buen cable USB.
+4. **Habilita la Depuración USB** en las Opciones de Desarrollador de tu Android.
+5. Abre Das-Hopper y autoriza la conexión en la pantalla de tu celular.
 
+## Tecnologías Utilizadas
+- [Electron](https://www.electronjs.org/)
+- Node.js
+- Android Debug Bridge (ADB)
+- Interfaz nativa en HTML5, CSS3 y JavaScript puro.
 
-## Crear un respaldo
-
-1. Conecta y autoriza el dispositivo.
-2. En la pestaña **Respaldar**, selecciona las categorías que quieras incluir. Puedes añadir carpetas extra.
-3. Elige la ubicación de destino y, si quieres, escribe un nombre para el respaldo.
-4. Pulsa **Realizar Backup** y espera a que termine. Mantén el teléfono conectado durante la operación.
-
-El respaldo contiene archivos del almacenamiento compartido, no una copia integral del teléfono. La opción de WhatsApp copia sus archivos de medios en `Android/media/com.whatsapp`; **no incluye por sí misma las conversaciones, la base de datos privada ni los ajustes de la aplicación**.
-
-La estructura local conserva las rutas de origen. Por ejemplo:
-
-```text
-Mi respaldo/
-├── DCIM/
-├── Download/
-│   └── Telegram/
-├── Android/
-│   └── media/
-│       └── com.whatsapp/
-└── Pictures/
-    └── Telegram/
-```
-
-Si ya existe una carpeta con el nombre elegido, la aplicación solicita confirmación antes de combinar los archivos. La actualización no elimina archivos que ya estaban en el respaldo y no se reemplazan durante la copia.
-
-## Restaurar un respaldo
-
-1. Selecciona la ubicación donde están guardados los respaldos.
-2. Abre la pestaña **Restaurar** y elige un respaldo de la lista.
-3. Confirma la operación y espera a que termine.
-
-Las carpetas de primer nivel del respaldo se copian a `/sdcard/` en el dispositivo. Para las carpetas comunes, ADB sincroniza los archivos y no elimina del teléfono los que no están en el respaldo. La carpeta `Android` se restaura sin ese modo de sincronización, por lo que sus archivos pueden sobrescribir archivos con el mismo nombre. La restauración no tiene deshacer ni ofrece una reversión automática.
-
-Si el respaldo incluye medios de WhatsApp y la aplicación no está instalada, Das-Hopper intenta usar un APK guardado en caché o descargarlo desde la URL configurada en `main.js`. Después intenta aplicar permisos que pueden variar según la versión de Android.
-
-
-## Cancelación y archivos parciales
-
-Una operación cancelada o interrumpida puede dejar archivos incompletos en el destino o en el dispositivo. No uses un respaldo recién cancelado como si estuviera completo; comprueba su contenido o vuelve a ejecutar la operación. La aplicación no crea una copia temporal transaccional ni revierte cambios ya realizados.
-
-## Solución de problemas
-
-- **No aparece el dispositivo:** comprueba el cable y la Depuración USB, acepta la autorización en el teléfono y vuelve a conectar.
-- **Aparece como no autorizado:** desbloquea el teléfono y acepta el diálogo de autorización de depuración USB.
-- **No hay espacio suficiente:** elige una ubicación con espacio libre en el equipo o libera almacenamiento en el teléfono antes de restaurar.
-- **Falla la descarga o instalación de WhatsApp:** comprueba la conexión a Internet y vuelve a intentarlo. La instalación puede requerir confirmación en el teléfono.
-
-## Privacidad
-
-Los respaldos se guardan en la ubicación que elijas. Protégelos como cualquier otro archivo personal: pueden contener fotos, vídeos y otros datos del dispositivo. Das-Hopper no cifra los respaldos.
+---
+*Desarrollado con ❤️ por [MrEarv](https://github.com/MrEarv)*
