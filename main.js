@@ -1,4 +1,4 @@
-const { app, BrowserWindow, dialog, ipcMain } = require('electron');
+const { app, BrowserWindow, dialog, ipcMain, screen } = require('electron');
 const { execFile, spawn } = require('child_process');
 const fs = require('fs/promises');
 const { createWriteStream, createReadStream } = require('fs');
@@ -28,9 +28,16 @@ const RESULTADO_CANCELADO = () => ({
 // Ventana
 // ---------------------------------------------------------------------------
 function createWindow() {
+    const { width, height } = screen.getPrimaryDisplay().workAreaSize;
+    const windowWidth = Math.round(width * 0.6);
+    const windowHeight = Math.round(height * 0.80);
+
     const win = new BrowserWindow({
-        width: 1000,
-        height: 700,
+        //resizable: false,
+        width: windowWidth,
+        height: windowHeight,
+        minWidth: 900,
+        minHeight: 700,
        // backgroundColor: '#1e1e1e',
         show: false,
         icon: path.join(__dirname, 'assets', 'icon.png'),

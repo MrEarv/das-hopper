@@ -1,64 +1,71 @@
-/* =========================================
-   1. VARIABLES DE ESTILO
-   ========================================= */
+/* Variables */
 :root {
-    /* Fondos y superficies */
     --color-fondo: #10161a;
     --color-tarjeta: #182126;
     --color-tarjeta-hover: #1e2b32;
     --color-tarjeta-activa: #132b20;
-    
-    /* Bordes y líneas */
+
     --color-borde: #2c3a41;
     --color-borde-hover: #3d5059;
 
-    /* Acento Principal (Respaldar) */
     --color-acento: #3ddc84;
     --color-acento-rgb: 61, 220, 132;
     --color-acento-hover: #32b86e;
 
-    /* Secundario (Restaurar) */
     --color-secundario: #35c8e8;
     --color-secundario-rgb: 53, 200, 232;
     --color-secundario-hover: #2ba5c2;
 
-    /* Estados */
     --color-warning: #ffbd59;
     --color-peligro: #b83b3b;
     --color-peligro-hover: #922d2d;
     --color-peligro-texto: #ff7b7b;
 
-    /* Textos base */
     --texto-blanco: #ffffff;
     --texto-gris: #aaaaaa;
 }
 
-/* =========================================
-   2. LAYOUT GLOBAL (Optimizado para 700px)
-   ========================================= */
+/* Layout */
 body {
-    font-family: 'Verdana', Tahoma, Geneva, sans-serif;
+    font-family: 'Segoe UI', system-ui, -apple-system, Roboto, Helvetica, Arial, Tahoma, Geneva, sans-serif;
     background-color: var(--color-fondo);
     color: var(--texto-blanco);
     user-select: none;
-    padding: 8px 20px 16px; /* Reducido para ganar altura */
+    padding: 8px 20px 16px;
     text-align: center;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
     height: 100vh;
     margin: 0;
-    overflow: hidden; /* Sin scrollbars globales */
+    overflow: hidden;
 }
 
 html { height: 100%; overflow: hidden; }
 input, select, textarea { user-select: text; }
 [hidden] { display: none !important; }
 
-h1 {
+.app-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    margin: 4px 0 12px;
     flex: 0 0 auto;
-    margin: 4px 0 8px;
+}
+
+.app-logo {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px; 
+    box-shadow: 0 2px 6px rgba(0,0,0,0.4); 
+}
+
+h1 {
+    margin: 0;
     font-size: 1.5rem;
+    font-weight: 600; 
+    letter-spacing: 0.5px;
 }
 
 .container {
@@ -74,47 +81,58 @@ h1 {
     align-items: stretch;
 }
 
-/* =========================================
-   3. TARJETAS FLEXIBLES (Adiós a los recortes)
-   ========================================= */
+/* Cards */
 .card {
     background-color: var(--color-tarjeta);
     padding: 12px 14px;
     border-radius: 8px;
     display: flex;
-    flex-direction: column; /* Tarjetas elásticas */
+    flex-direction: column;
 }
 
 #opciones_panel { flex: 2; overflow: hidden; }
 #celular_status { flex: 1; overflow: hidden; }
 
-/* Contenedores de vistas que ocupan el espacio restante */
-#vista-backup:not([hidden]), 
+#vista-backup:not([hidden]),
 #vista-restore:not([hidden]) {
     display: flex;
     flex-direction: column;
     flex: 1;
-    min-height: 0; /* Permite que las listas internas hagan scroll sin estirar la tarjeta */
+    min-height: 0;
 }
 
-#celular-info { flex: 1; display: flex; flex-direction: column; justify-content: center; }
-#opcion { flex: 0 0 auto; margin-top: 10px; }
+#celular-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+}
+#opcion {
+    flex: 0 0 auto;
+    margin-top: 20px;
+}
+#device-status {
+    font-size: 1.15rem;
+    margin: 0;
+    line-height: 1.3;
+}
 
-/* =========================================
-   4. ILUSTRACIÓN DEL TELÉFONO (Diseño Humano y Plano)
-   ========================================= */
+/* Ilustración del teléfono */
 .phone-illustration {
     position: relative;
-    width: 76px; /* Ligeramente más pequeño para pantallas de 700px */
-    height: 140px;
-    margin: 0 auto 10px;
+    height: clamp(130px, 30vh, 220px);
+    aspect-ratio: 1 / 1.85;
+
+    margin: 0 auto 15px;
     padding: 6px;
     box-sizing: border-box;
-    background: var(--color-borde); /* Fondo sólido, nada de gradientes */
+    background: var(--color-borde);
     border: 2px solid var(--color-borde-hover);
-    border-radius: 18px;
-    box-shadow: 0 8px 16px rgba(0,0,0,0.3); /* Sombra física, no luz */
-    transition: border-color 0.3s ease;
+    border-radius: clamp(12px, 3vh, 26px);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+    transition: border-color 0.3s ease, height 0.3s ease;
 }
 
 .phone-screen {
@@ -123,7 +141,7 @@ h1 {
     height: 100%;
     overflow: hidden;
     border-radius: 10px;
-    background: var(--color-fondo); /* Sólido oscuro */
+    background: var(--color-fondo);
 }
 
 .phone-camera {
@@ -150,7 +168,6 @@ h1 {
     transform: translateX(-50%);
 }
 
-/* Indicador de conexión elegante (Solo cambia el borde, sin auras gigantes) */
 #celular_status.device-connected .phone-illustration {
     border-color: var(--color-secundario);
 }
@@ -158,9 +175,7 @@ body.backup-running #celular_status.device-connected .phone-illustration {
     border-color: var(--color-warning);
 }
 
-/* =========================================
-   5. PESTAÑAS (TABS)
-   ========================================= */
+/* Pestañas */
 .tab-bar {
     display: flex;
     flex: 0 0 auto;
@@ -186,18 +201,16 @@ body.backup-running #celular_status.device-connected .phone-illustration {
 
 h2 { margin: 0 0 10px 0; font-size: 1.1rem; flex: 0 0 auto; }
 
-/* =========================================
-   6. OPCIONES DE RESPALDO (Scroll interno inteligente)
-   ========================================= */
+/* Opciones de respaldo */
 .backup-options {
     display: flex;
     flex-direction: column;
     gap: 6px;
     margin: 0;
-    padding-right: 6px; /* Espacio para scrollbar */
+    padding-right: 6px;
     text-align: left;
     flex: 1;
-    overflow-y: auto; /* Scroll exclusivo para las opciones */
+    overflow-y: auto;
     min-height: 0;
 }
 
@@ -242,9 +255,7 @@ h2 { margin: 0 0 10px 0; font-size: 1.1rem; flex: 0 0 auto; }
 .backup-option input:checked ~ .checkmark::after { opacity: 1; transform: rotate(45deg) scale(1); }
 .option-text { color: #ddd; font-size: 0.95rem; }
 
-/* =========================================
-   7. CARPETAS EXTRA
-   ========================================= */
+/* Carpetas extra */
 .extra-folders-section {
     margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--color-borde);
     flex: 0 0 auto;
@@ -276,15 +287,10 @@ h2 { margin: 0 0 10px 0; font-size: 1.1rem; flex: 0 0 auto; }
 .folder-badge .quitar svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; }
 .folder-badge button.quitar:hover { color: var(--color-peligro-hover); }
 
-/* =========================================
-   8. INPUTS Y SCROLLBARS
-   ========================================= */
-/* =========================================
-   8. INPUTS Y SCROLLBARS
-   ========================================= */
+/* Inputs y scrollbars */
 input[type="text"], select {
-    box-sizing: border-box; /* <--- LA CLAVE PARA QUE NO EMpuje EL BOTÓN */
-    width: 100%; /* <--- Mantiene los inputs dentro del límite */
+    box-sizing: border-box;
+    width: 100%;
     background-color: var(--color-fondo) !important;
     border: 1px solid var(--color-borde) !important;
     border-radius: 6px !important;
@@ -298,18 +304,16 @@ input[type="text"]:focus, select:focus { border-color: var(--color-acento) !impo
 ::-webkit-scrollbar-thumb { background: var(--color-borde); border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--color-borde-hover); }
 
-/* =========================================
-   9. VISTA RESTAURAR (Lista flexible)
-   ========================================= */
+/* Vista de restauración */
 .restore-hint { margin-bottom: 8px; font-size: 0.9rem; flex: 0 0 auto; text-align: left; }
 
 .lista-respaldos {
     background: var(--color-fondo);
     border: 1px solid var(--color-borde);
     border-radius: 5px;
-    flex: 1; /* Ocupa el espacio sin romper la tarjeta */
-    overflow-y: auto; /* Scroll solo interno */
-    min-height: 100px; 
+    flex: 1;
+    overflow-y: auto;
+    min-height: 100px;
     text-align: left;
 }
 
@@ -337,48 +341,42 @@ body.backup-running .backup-item { cursor: not-allowed; opacity: 0.6; }
 .backup-list-actions button { padding: 8px 12px; margin: 0; width: auto; font-size: 14px; display: inline-flex; align-items: center; gap: 6px; }
 .danger-action { background: var(--color-peligro); color: var(--texto-blanco); }
 
-/* Agrega este bloque para arreglar el ícono */
-.backup-list-actions svg { 
-    width: 18px; 
-    height: 18px; 
-    fill: none; /* <-- Esto quita el bloque negro */
-    stroke: currentColor; 
-    stroke-width: 2; 
-    stroke-linecap: round; 
-    stroke-linejoin: round; 
+.backup-list-actions svg {
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
 }
 .danger-action { background: var(--color-peligro); color: var(--texto-blanco); }
 
-/* =========================================
-   10. BOTONES GENERALES DE ACCIÓN (Flat UI)
-   ========================================= */
+/* Botones */
 button {
     background-color: var(--color-acento);
     color: var(--color-fondo);
     border: none;
-    padding: 12px 20px; /* Reducido para ahorrar espacio */
+    padding: 12px 20px;
     font-size: 14px;
     font-weight: 600;
     border-radius: 6px;
     cursor: pointer;
     transition: all 0.2s ease;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.15); /* Sombra física sutil */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
 }
 
 button:hover:not(:disabled) { box-shadow: 0 4px 8px rgba(0,0,0,0.25); transform: translateY(-1px); }
 button:active:not(:disabled) { transform: translateY(0); box-shadow: 0 1px 2px rgba(0,0,0,0.15); }
 button:disabled { background-color: var(--color-borde) !important; color: var(--texto-gris) !important; box-shadow: none !important; cursor: not-allowed; }
 
-/* Botón Principal Inteligente */
 button#backup-btn { width: 100%; margin: 0; padding: 14px 20px; font-size: 15px; }
 
-/* Modos específicos sin neones */
 button.cancel-backup { background-color: var(--color-peligro) !important; color: var(--texto-blanco) !important; }
 #backup-btn.restore-mode { background-color: var(--color-secundario); }
 #backup-btn.restore-mode:hover:not(:disabled) { background-color: var(--color-secundario-hover); }
 #btn-add-folder { box-shadow: none; }
 
-/* Formularios laterales */
 #backup-name { width: 100%; margin-bottom: 8px; box-sizing: border-box; }
 .backup-destination { display: flex; gap: 8px; margin-bottom: 8px; width: 100%; }
 #select-backup-path {
@@ -392,9 +390,7 @@ button.cancel-backup { background-color: var(--color-peligro) !important; color:
     color: var(--texto-blanco);
     box-shadow: none;
 }
-/* =========================================
-   11. STATUS Y PROGRESS BAR
-   ========================================= */
+/* Estado y progreso */
 #status { margin-top: 8px; color: var(--texto-gris); font-size: 0.9rem; }
 #status.status-success, .success { color: var(--color-acento) !important; font-weight: bold; }
 #status.status-warning { color: var(--color-warning); font-weight: bold; }
@@ -427,13 +423,18 @@ button.cancel-backup { background-color: var(--color-peligro) !important; color:
 
 #progress-text { margin: 6px 0 0; font-size: 0.85rem; color: #bbb; }
 
-/* =========================================
-   12. ICONO ANDROID & FLECHAS ANIMADAS
-   ========================================= */
+/* Icono Android y flechas */
 .phone-android-icon {
-    position: absolute; top: 50%; left: 50%; width: 54px; height: 54px;
-    color: var(--texto-gris); /* Color neutro en reposo */
-    transform: translate(-50%, -50%); transition: color 0.3s ease;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 50%;
+    height: auto;
+    aspect-ratio: 1 / 1;
+
+    color: var(--texto-gris);
+    transform: translate(-50%, -50%);
+    transition: color 0.3s ease;
 }
 .phone-android-icon circle { fill: currentColor; stroke: none; }
 
@@ -441,7 +442,6 @@ button.cancel-backup { background-color: var(--color-peligro) !important; color:
 .phone-android-icon .arrow-backup path, .phone-android-icon .arrow-backup polyline { stroke: var(--color-acento); }
 .phone-android-icon .arrow-restore path, .phone-android-icon .arrow-restore polyline { stroke: var(--color-secundario); }
 
-/* Sin latidos, solo cambio de color estable y sólido */
 body.is-backing-up .phone-android-icon { color: var(--color-warning); }
 body.is-restoring .phone-android-icon { color: var(--color-secundario); }
 
@@ -457,9 +457,7 @@ body.backup-running .phone-android-icon .sync-arrows { transform-origin: center;
 @keyframes spin-arrows { 100% { transform: rotate(-360deg); } }
 @keyframes data-flow { to { stroke-dashoffset: -14; } }
 
-/* =========================================
-   13. MODAL (ADVERTENCIAS)
-   ========================================= */
+/* Modal */
 .modal-backdrop {
     position: fixed; z-index: 10; inset: 0; display: flex; align-items: center; justify-content: center;
     padding: 20px; background: rgba(0,0,0,0.6); backdrop-filter: blur(3px);
@@ -474,7 +472,24 @@ body.backup-running .phone-android-icon .sync-arrows { transform-origin: center;
 .confirm-modal-actions button { width: auto; min-width: 90px; margin: 0; padding: 10px 16px; box-shadow: none; }
 .confirm-modal-actions .modal-cancel { border: 1px solid var(--color-borde); background: var(--color-tarjeta-hover); color: var(--texto-blanco); }
 
-/* Reducir movimiento */
+/* Firma */
+.app-footer {
+    position: absolute;
+    bottom: 8px;
+    right: 14px;
+    font-size: 0.65rem;
+    color: var(--color-borde); 
+    letter-spacing: 0.5px;
+    opacity: 0.6;
+    transition: opacity 0.3s ease, color 0.3s ease;
+    pointer-events: none; 
+}
+.app-footer { pointer-events: auto; }
+.app-footer:hover {
+    color: var(--texto-gris);
+    opacity: 1;
+}
+
 @media (prefers-reduced-motion: reduce) {
     #progress-bar { transition: none; }
     #progress-bar-container.progress-running::after, body.backup-running .phone-android-icon .sync-arrows,
