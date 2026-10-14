@@ -1,16 +1,34 @@
 {
   "name": "das-hopper",
   "version": "1.0.0",
-  "description": "Herramienta de respaldo ADB - Dastan Edition",
+  "description": "Herramienta de respaldo ADB",
+  "author": "MrEarv",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
     "build": "electron-builder"
   },
   "build": {
-    "appId": "com.das-hopper.app",
+    "appId": "com.mrearv.dashopper",
+    "productName": "Das-Hopper",
+    "directories": {
+      "output": "dist"
+    },
+    "asarUnpack": [
+      "bin/**/*"
+    ],
     "win": {
-      "icon": "assets/icon.ico"
+      "icon": "assets/icon.png",
+      "target": ["nsis", "portable"]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "shortcutName": "Das-Hopper"
+    },
+    "portable": {
+      "artifactName": "${productName}-Portable-${version}.exe"
     }
   },
   "devDependencies": {

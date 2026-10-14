@@ -373,6 +373,7 @@ window.api.onEstadoDispositivo((data) => {
 // ---------------------------------------------------------------------------
 function cambiarModo(modo) {
     const esBackup = modo === 'backup';
+    progresoTexto.innerText = '';
 
     if (esBackup && modoActual !== 'backup') {
         backupNameInput.disabled = false;
@@ -548,7 +549,7 @@ function mostrarResultado(tipo, respuesta, duracionMs) {
             : '';
         if (advertencias.length) {
             setStatus(`${etiqueta} completad${o} con ${advertencias.length} advertencia(s)${detalleOperacion}.`, 'warning');
-            progresoTexto.innerText = advertencias.join(' · ');
+            progresoTexto.innerText = advertencias.join('\n');
         } else {
             setStatus(`${etiqueta} completad${o}${detalleOperacion}`, 'success');
         }
@@ -558,7 +559,7 @@ function mostrarResultado(tipo, respuesta, duracionMs) {
         progressBar.classList.add('progress-error');
         setProgress(ultimoPorcentaje, `${etiqueta} no completad${o} (${Math.floor(ultimoPorcentaje)}%)`);
         const advertencias = respuesta.warnings || [];
-        if (advertencias.length) progresoTexto.innerText = advertencias.join(' · ');
+        if (advertencias.length) progresoTexto.innerText = advertencias.join('\n');
     }
 }
 

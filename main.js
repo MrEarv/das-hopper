@@ -6,7 +6,7 @@ const { pipeline } = require('stream/promises');
 const crypto = require('crypto');
 const path = require('path');
 const https = require('https');
-const adbPath = path.join(__dirname, 'bin', 'adb.exe');
+const adbPath = path.join(__dirname, 'bin', 'adb.exe').replace('app.asar', 'app.asar.unpacked');
 
 const WHATSAPP_PACKAGE = 'com.whatsapp';
 const WHATSAPP_APK_URL = 'https://github.com/MrEarv/das-hopper/releases/download/v1.0.0-asset/whatsapp.apk';

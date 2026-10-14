@@ -108,10 +108,12 @@ h1 {
     justify-content: center;
     align-items: center;
     gap: 10px;
+    min-height: 0;
 }
 #opcion {
     flex: 0 0 auto;
-    margin-top: 20px;
+    margin-top: auto;
+    width: 100%;
 }
 #device-status {
     font-size: 1.15rem;
@@ -124,8 +126,7 @@ h1 {
     position: relative;
     height: clamp(130px, 30vh, 220px);
     aspect-ratio: 1 / 1.85;
-
-    margin: 0 auto 15px;
+    margin: 0;
     padding: 6px;
     box-sizing: border-box;
     background: var(--color-borde);
@@ -370,7 +371,7 @@ button:hover:not(:disabled) { box-shadow: 0 4px 8px rgba(0,0,0,0.25); transform:
 button:active:not(:disabled) { transform: translateY(0); box-shadow: 0 1px 2px rgba(0,0,0,0.15); }
 button:disabled { background-color: var(--color-borde) !important; color: var(--texto-gris) !important; box-shadow: none !important; cursor: not-allowed; }
 
-button#backup-btn { width: 100%; margin: 0; padding: 14px 20px; font-size: 15px; }
+button#backup-btn { width: 100%; margin: 6px 0 0; padding: 12px 20px; font-size: 15px; }
 
 button.cancel-backup { background-color: var(--color-peligro) !important; color: var(--texto-blanco) !important; }
 #backup-btn.restore-mode { background-color: var(--color-secundario); }
@@ -391,7 +392,7 @@ button.cancel-backup { background-color: var(--color-peligro) !important; color:
     box-shadow: none;
 }
 /* Estado y progreso */
-#status { margin-top: 8px; color: var(--texto-gris); font-size: 0.9rem; }
+#status { margin: 0; color: var(--texto-gris); font-size: 0.9rem;line-height: 1.4; }
 #status.status-success, .success { color: var(--color-acento) !important; font-weight: bold; }
 #status.status-warning { color: var(--color-warning); font-weight: bold; }
 
@@ -421,7 +422,22 @@ button.cancel-backup { background-color: var(--color-peligro) !important; color:
 #progress-bar.progress-error { background: var(--color-peligro); }
 #progress-bar.progress-cancelled { background: var(--color-warning); }
 
-#progress-text { margin: 6px 0 0; font-size: 0.85rem; color: #bbb; }
+#progress-text { 
+    min-height: 1.2em; 
+    margin: 6px 0 0; 
+    font-size: 0.85rem; 
+    color: #bbb; 
+}
+#backup-status { 
+    flex: 0 0 auto;
+    margin: 10px 0 0 0; 
+    font-size: 0.85rem; 
+    color: var(--color-warning); 
+    max-height: 50px;
+    overflow-y: auto; 
+    text-align: left;
+    white-space: pre-wrap; 
+}
 
 /* Icono Android y flechas */
 .phone-android-icon {
