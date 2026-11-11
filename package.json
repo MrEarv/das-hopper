@@ -1,6 +1,6 @@
 {
   "name": "das-hopper",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Herramienta de respaldo ADB",
   "author": "MrEarv",
   "main": "main.js",

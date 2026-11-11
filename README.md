@@ -11,6 +11,7 @@ Das-Hopper es una aplicación de escritorio diseñada para hacer respaldos y res
 ## Características Principales
 
 - **Arquitectura Híbrida Inteligente:** Ahorra tiempo sincronizando (`--sync`) archivos pesados como la galería (DCIM) y las descargas, mientras fuerza la sobrescritura exacta de bases de datos críticas (como WhatsApp) para evitar corrupción.
+- **Rescate Rápido:** (Nuevo) Crea un respaldo de las fotos y videos de todo tu dispositivo sin tener que seleciconar carpetas en específico.
 - **Instalación de WhatsApp Offline:** Descarga, instala y aplica los permisos necesarios para WhatsApp automáticamente durante la restauración.
 - **Carpetas Extra Personalizadas:** Explora y añade directorios adicionales directamente desde la memoria de tu dispositivo.
 - **Portabilidad:** Disponible en instalador clásico o como versión *Portable* para llevar en un USB.
@@ -19,7 +20,7 @@ Das-Hopper es una aplicación de escritorio diseñada para hacer respaldos y res
 ## Instalación y Uso
 
 1. Ve a la sección de [Releases](../../releases/latest) a la derecha de esta página.
-2. Descarga `Das-Hopper-Setup-1.0.0.exe` (para instalar) o la versión `Portable`.
+2. Descarga `Das-Hopper-Setup-1.1.0.exe` (para instalar) o la versión `Portable`.
 3. Conecta tu celular a la PC con un buen cable USB.
 4. **Habilita la Depuración USB** en las Opciones de Desarrollador de tu Android.
 5. Abre Das-Hopper y autoriza la conexión en la pantalla de tu celular.
