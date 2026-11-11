@@ -430,46 +430,126 @@ async function ejecutarRescate(event, datos, op) {
         return { success: false, msg: `No se pudieron crear las carpetas de rescate: ${error.message}` };
     }
 
-    const totalBytes = archivos.reduce((acc, a) => acc + a.bytes, 0);
+    // ---- Armado de lotes para máxima velocidad sin sobrescribir duplicados ----
+    const MAX_ARCHIVOS_LOTE = 60;
+    const MAX_BYTES_LOTE = 64 * 1024 * 1024; // 64 MB por lote para refrescar progreso seguido
+    const MAX_CHARS_LOTE = 8000;
+
     const extVideos = new Set(['.mp4', '.mov', '.mkv']);
+    const nombresUsadosFotos = new Set();
+    const nombresUsadosVideos = new Set();
+
+    const unidades = [];
+    let loteFotos = { rutas: [], bytes: 0, chars: 0, ultimoNombre: '' };
+    let loteVideos = { rutas: [], bytes: 0, chars: 0, ultimoNombre: '' };
+
+    const cerrarLote = (lote, destinoDir) => {
+        if (lote.rutas.length === 0) return;
+        unidades.push({
+            tipo: 'lote',
+            rutas: lote.rutas,
+            destinoDir,
+            bytes: lote.bytes,
+            cantidad: lote.rutas.length,
+            etiqueta: lote.ultimoNombre
+        });
+        lote.rutas = [];
+        lote.bytes = 0;
+        lote.chars = 0;
+        lote.ultimoNombre = '';
+    };
+
+    for (const item of archivos) {
+        const nombreOriginal = path.posix.basename(item.ruta);
+        const claveNombre = nombreOriginal.toLowerCase();
+        const esVideo = extVideos.has(path.extname(claveNombre));
+
+        const subcarpeta = esVideo ? carpetaVideos : carpetaFotos;
+        const setUsados = esVideo ? nombresUsadosVideos : nombresUsadosFotos;
+        const loteActual = esVideo ? loteVideos : loteFotos;
+
+        if (setUsados.has(claveNombre) || existsSync(path.join(subcarpeta, nombreOriginal))) {
+            unidades.push({
+                tipo: 'individual',
+                ruta: item.ruta,
+                subcarpeta,
+                nombreOriginal,
+                bytes: item.bytes,
+                cantidad: 1,
+                etiqueta: nombreOriginal
+            });
+            continue;
+        }
+
+        setUsados.add(claveNombre);
+        const largoRuta = item.ruta.length + 3;
+
+        if (
+            loteActual.rutas.length > 0 &&
+            (loteActual.rutas.length >= MAX_ARCHIVOS_LOTE ||
+                loteActual.bytes + item.bytes > MAX_BYTES_LOTE ||
+                loteActual.chars + largoRuta > MAX_CHARS_LOTE)
+        ) {
+            cerrarLote(loteActual, subcarpeta);
+        }
+
+        loteActual.rutas.push(item.ruta);
+        loteActual.bytes += item.bytes;
+        loteActual.chars += largoRuta;
+        loteActual.ultimoNombre = nombreOriginal;
+    }
+
+    cerrarLote(loteFotos, carpetaFotos);
+    cerrarLote(loteVideos, carpetaVideos);
+
+    // ---- Ejecución de lotes ----
+    const totalBytes = archivos.reduce((acc, a) => acc + a.bytes, 0);
     let bytesHechos = 0;
+    let archivosProcesados = 0;
     let extraidos = 0;
 
-    for (let i = 0; i < archivos.length; i++) {
+    for (const unidad of unidades) {
         if (op.cancelado) return RESULTADO_CANCELADO();
 
-        const item = archivos[i];
-        const nombreOriginal = path.posix.basename(item.ruta);
-        const ext = path.extname(nombreOriginal).toLowerCase();
-        const subcarpeta = extVideos.has(ext) ? carpetaVideos : carpetaFotos;
-        const rutaLocal = obtenerRutaUnica(subcarpeta, nombreOriginal);
+        let rPull;
+        if (unidad.tipo === 'lote') {
+            rPull = await ejecutarAdb(
+                serial,
+                ['pull', '-a', ...unidad.rutas, unidad.destinoDir],
+                { timeout: 600000, op }
+            );
+        } else {
+            const rutaLocal = obtenerRutaUnica(unidad.subcarpeta, unidad.nombreOriginal);
+            rPull = await ejecutarAdb(
+                serial,
+                ['pull', '-a', unidad.ruta, rutaLocal],
+                { timeout: 600000, op }
+            );
+        }
 
-        const info = {
-            taskName: 'Extrayendo multimedia',
-            taskIndex: i,
-            taskCount: archivos.length
-        };
-
-        const rPull = await ejecutarAdb(serial, ['pull', '-a', item.ruta, rutaLocal], { timeout: 600000, op });
         if (op.cancelado) return RESULTADO_CANCELADO();
+
+        archivosProcesados += unidad.cantidad;
 
         if (!rPull.ok) {
-            advertencias.push(`No se pudo extraer: ${nombreOriginal}`);
+            advertencias.push(`Fallo parcial o archivo omitido cerca de: ${unidad.etiqueta}`);
         } else {
-            extraidos++;
-            bytesHechos += item.bytes;
+            extraidos += unidad.cantidad;
+            bytesHechos += unidad.bytes;
         }
 
         const pct = totalBytes > 0
             ? porcentaje(bytesHechos, totalBytes)
-            : porcentaje(i + 1, archivos.length);
+            : porcentaje(archivosProcesados, archivos.length);
 
         emisor.progreso({
             percent: pct,
             bytesDone: totalBytes > 0 ? bytesHechos : undefined,
             bytesTotal: totalBytes > 0 ? totalBytes : undefined,
-            file: nombreOriginal,
-            ...info
+            file: unidad.etiqueta,
+            taskName: 'Extrayendo multimedia',
+            taskIndex: Math.min(archivosProcesados - 1, archivos.length - 1),
+            taskCount: archivos.length
         });
     }
 
