@@ -1,7 +1,7 @@
 const { app, BrowserWindow, dialog, ipcMain, screen } = require('electron');
 const { execFile, spawn } = require('child_process');
 const fs = require('fs/promises');
-const { createWriteStream, createReadStream } = require('fs');
+const { createWriteStream, createReadStream, existsSync } = require('fs');
 const { pipeline } = require('stream/promises');
 const crypto = require('crypto');
 const path = require('path');
@@ -331,7 +331,7 @@ ipcMain.handle('get-android-folders', async () => {
 });
 
 // ---------------------------------------------------------------------------
-// Control de operaciones (respaldo / restauración)
+// Control de operaciones (respaldo / restauración) + rescate multimedia
 // ---------------------------------------------------------------------------
 async function ejecutarOperacion(event, tipo, fn) {
     const senderId = event.sender.id;
@@ -350,12 +350,153 @@ async function ejecutarOperacion(event, tipo, fn) {
     }
 }
 
+function obtenerRutaUnica(carpetaDestino, nombreArchivo) {
+    let destinoFinal = path.join(carpetaDestino, nombreArchivo);
+    if (!existsSync(destinoFinal)) return destinoFinal;
+
+    const ext = path.extname(nombreArchivo);
+    const base = path.basename(nombreArchivo, ext);
+    let contador = 1;
+
+    while (existsSync(destinoFinal)) {
+        destinoFinal = path.join(carpetaDestino, `${base}_${contador}${ext}`);
+        contador++;
+    }
+    return destinoFinal;
+}
+
+async function ejecutarRescate(event, datos, op) {
+    const emisor = crearEmisor(event);
+    const advertencias = [];
+
+    const nombreBackup = typeof datos.backupName === 'string' ? datos.backupName.trim() : '';
+    const carpetaBase = typeof datos.destinationPath === 'string' ? datos.destinationPath.trim() : '';
+
+    if (!nombreBackupValido(nombreBackup)) {
+        return { success: false, msg: 'El nombre de la carpeta no es válido.' };
+    }
+    if (!carpetaBase || !path.isAbsolute(carpetaBase)) {
+        return { success: false, msg: 'Selecciona una carpeta de destino válida.' };
+    }
+
+    const serial = dispositivoActual;
+    if (!serial) {
+        return { success: false, msg: 'No hay un dispositivo listo. Conéctalo y autoriza la depuración USB.' };
+    }
+
+    emisor.enviar({ type: 'prepare', text: 'Escaneando fotos y videos (+100 KB) en todo el dispositivo...' });
+
+    const filtroBase = 'find /sdcard/ -type f -size +100k \\( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" -o -iname "*.heic" -o -iname "*.heif" -o -iname "*.dng" -o -iname "*.mp4" -o -iname "*.mov" -o -iname "*.mkv" \\) ! -path "*/Android/data/*" ! -path "*/Android/obb/*" ! -path "*/.thumbnails/*" ! -path "*/.Trash*"';
+
+    const rStat = await ejecutarAdb(serial, ['shell', `${filtroBase} -exec stat -c "%s|%n" {} + 2>/dev/null`], { timeout: 600000, op });
+    if (op.cancelado) return RESULTADO_CANCELADO();
+
+    let archivos = [];
+    for (const linea of rStat.stdout.split(/\r?\n/)) {
+        const l = linea.trim();
+        if (!l) continue;
+        const idx = l.indexOf('|');
+        if (idx > 0) {
+            const bytes = Number(l.slice(0, idx));
+            const ruta = l.slice(idx + 1).trim();
+            if (Number.isFinite(bytes) && ruta.startsWith('/')) {
+                archivos.push({ ruta, bytes });
+            }
+        }
+    }
+
+    if (archivos.length === 0) {
+        const rFind = await ejecutarAdb(serial, ['shell', `${filtroBase} 2>/dev/null`], { timeout: 600000, op });
+        if (op.cancelado) return RESULTADO_CANCELADO();
+        archivos = rFind.stdout
+            .split(/\r?\n/)
+            .map((l) => l.trim())
+            .filter((l) => l.startsWith('/'))
+            .map((ruta) => ({ ruta, bytes: 0 }));
+    }
+
+    if (archivos.length === 0) {
+        return { success: false, msg: 'No se encontraron fotos ni videos mayores a 100 KB.' };
+    }
+
+    const carpetaRaiz = path.join(carpetaBase, nombreBackup, 'Rescate_Multimedia');
+    const carpetaFotos = path.join(carpetaRaiz, 'Fotos');
+    const carpetaVideos = path.join(carpetaRaiz, 'Videos');
+
+    try {
+        await fs.mkdir(carpetaFotos, { recursive: true });
+        await fs.mkdir(carpetaVideos, { recursive: true });
+    } catch (error) {
+        return { success: false, msg: `No se pudieron crear las carpetas de rescate: ${error.message}` };
+    }
+
+    const totalBytes = archivos.reduce((acc, a) => acc + a.bytes, 0);
+    const extVideos = new Set(['.mp4', '.mov', '.mkv']);
+    let bytesHechos = 0;
+    let extraidos = 0;
+
+    for (let i = 0; i < archivos.length; i++) {
+        if (op.cancelado) return RESULTADO_CANCELADO();
+
+        const item = archivos[i];
+        const nombreOriginal = path.posix.basename(item.ruta);
+        const ext = path.extname(nombreOriginal).toLowerCase();
+        const subcarpeta = extVideos.has(ext) ? carpetaVideos : carpetaFotos;
+        const rutaLocal = obtenerRutaUnica(subcarpeta, nombreOriginal);
+
+        const info = {
+            taskName: 'Extrayendo multimedia',
+            taskIndex: i,
+            taskCount: archivos.length
+        };
+
+        const rPull = await ejecutarAdb(serial, ['pull', '-a', item.ruta, rutaLocal], { timeout: 600000, op });
+        if (op.cancelado) return RESULTADO_CANCELADO();
+
+        if (!rPull.ok) {
+            advertencias.push(`No se pudo extraer: ${nombreOriginal}`);
+        } else {
+            extraidos++;
+            bytesHechos += item.bytes;
+        }
+
+        const pct = totalBytes > 0
+            ? porcentaje(bytesHechos, totalBytes)
+            : porcentaje(i + 1, archivos.length);
+
+        emisor.progreso({
+            percent: pct,
+            bytesDone: totalBytes > 0 ? bytesHechos : undefined,
+            bytesTotal: totalBytes > 0 ? totalBytes : undefined,
+            file: nombreOriginal,
+            ...info
+        });
+    }
+
+    if (extraidos === 0) {
+        return { success: false, msg: 'No se pudo extraer ningún archivo multimedia.', warnings: advertencias };
+    }
+
+    const medidaFinal = totalBytes > 0 ? { bytes: bytesHechos } : await medirCarpeta(carpetaRaiz, op);
+
+    return {
+        success: true,
+        msg: `Rescate completado (${extraidos} archivos en ${carpetaRaiz})`,
+        bytesRespaldados: medidaFinal.bytes,
+        warnings: advertencias
+    };
+}
+
 ipcMain.handle('start-backup', (event, selecciones) =>
     ejecutarOperacion(event, 'backup', (op) => ejecutarRespaldo(event, selecciones || {}, op))
 );
 
 ipcMain.handle('start-restore', (event, datos) =>
     ejecutarOperacion(event, 'restore', (op) => ejecutarRestauracion(event, datos || {}, op))
+);
+
+ipcMain.handle('iniciar-rescate', (event, datos) =>
+    ejecutarOperacion(event, 'rescue', (op) => ejecutarRescate(event, datos || {}, op))
 );
 
 ipcMain.handle('cancel-operation', (event) => {

@@ -9,7 +9,7 @@ contextBridge.exposeInMainWorld('api', {
     startBackup: (selecciones) => ipcRenderer.invoke('start-backup', selecciones),
     startRestore: (datos) => ipcRenderer.invoke('start-restore', datos),
     cancelOperation: () => ipcRenderer.invoke('cancel-operation'),
-
+    iniciarRescate: (datos) => ipcRenderer.invoke('iniciar-rescate', datos),
     onEstadoDispositivo: (callback) => ipcRenderer.on('estado-dispositivo', (_event, data) => callback(data)),
     onBackupProgress: (callback) => ipcRenderer.on('backup-progress', (_event, data) => callback(data)),
 

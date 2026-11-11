@@ -10,7 +10,7 @@ const progressText = document.getElementById('progress-text');
 const progressBarContainer = document.getElementById('progress-bar-container');
 const progressContainer = document.getElementById('progress-container');
 const progresoTexto = document.getElementById('backup-status');
-
+const rescueBtn = document.getElementById('rescue-btn');
 const tabBackup = document.getElementById('tab-backup');
 const tabRestore = document.getElementById('tab-restore');
 const vistaBackup = document.getElementById('vista-backup');
@@ -130,11 +130,16 @@ function actualizarBoton() {
     btnBackup.classList.toggle('cancel-backup', enOperacion);
     btnBackup.classList.toggle('restore-mode', !enOperacion && modoActual === 'restore');
 
+    if (rescueBtn) {
+        rescueBtn.disabled = enOperacion || !dispositivoIdActual;
+    }
+
     if (enOperacion) {
         btnBackup.disabled = cancelacionEnCurso;
-        btnBackup.innerText = cancelacionEnCurso
-            ? 'Cancelando...'
-            : (operacionEnCurso === 'restore' ? 'Cancelar restauración' : 'Cancelar respaldo');
+        const etiquetaCancelar = operacionEnCurso === 'restore'
+            ? 'Cancelar restauración'
+            : (operacionEnCurso === 'rescue' ? 'Cancelar rescate' : 'Cancelar respaldo');
+        btnBackup.innerText = cancelacionEnCurso ? 'Cancelando...' : etiquetaCancelar;
     } else {
         btnBackup.disabled = !dispositivoIdActual;
         btnBackup.innerText = modoActual === 'restore' ? 'Restaurar Backup' : 'Realizar Backup';
@@ -143,7 +148,7 @@ function actualizarBoton() {
 
 function bloquearControles(bloquear) {
     document.body.classList.toggle('backup-running', bloquear);
-    document.body.classList.toggle('is-backing-up', bloquear && operacionEnCurso === 'backup');
+    document.body.classList.toggle('is-backing-up', bloquear && (operacionEnCurso === 'backup' || operacionEnCurso === 'rescue'));
     document.body.classList.toggle('is-restoring', bloquear && operacionEnCurso === 'restore');
 
     if (bloquear) {
@@ -374,7 +379,9 @@ window.api.onEstadoDispositivo((data) => {
 function cambiarModo(modo) {
     const esBackup = modo === 'backup';
     progresoTexto.innerText = '';
-
+    if (rescueBtn) {
+        rescueBtn.style.display = esBackup ? 'block' : 'none';
+    }
     if (esBackup && modoActual !== 'backup') {
         backupNameInput.disabled = false;
         backupNameInput.value = nombreBackupDraft;
@@ -514,10 +521,16 @@ async function ejecutarOperacionUI({ tipo, canal, payload, estadoInicial, textoI
     progressBar.classList.remove('progress-error', 'progress-cancelled');
     setProgress(0, textoInicial, true);
 
+    const metodos = {
+        'start-backup': 'startBackup',
+        'start-restore': 'startRestore',
+        'iniciar-rescate': 'iniciarRescate'
+    };
+
     let respuesta;
     const inicio = performance.now();
     try {
-        respuesta = await window.api[canal === 'start-backup' ? 'startBackup' : 'startRestore'](payload);
+        respuesta = await window.api[metodos[canal]](payload);
     } catch (error) {
         respuesta = { success: false, msg: error.message };
     }
@@ -531,7 +544,7 @@ async function ejecutarOperacionUI({ tipo, canal, payload, estadoInicial, textoI
 }
 
 function mostrarResultado(tipo, respuesta, duracionMs) {
-    const etiqueta = tipo === 'restore' ? 'Restauración' : 'Respaldo';
+    const etiqueta = tipo === 'restore' ? 'Restauración' : (tipo === 'rescue' ? 'Rescate' : 'Respaldo');
     const o = tipo === 'restore' ? 'a' : 'o';
     progresoTexto.innerText = '';
 
@@ -541,9 +554,9 @@ function mostrarResultado(tipo, respuesta, duracionMs) {
         setProgress(ultimoPorcentaje, `${etiqueta} cancelad${o} en ${Math.floor(ultimoPorcentaje)}%`);
     } else if (respuesta.success) {
         const advertencias = respuesta.warnings || [];
-        const bytesTransferidos = tipo === 'backup'
-            ? respuesta.bytesRespaldados
-            : respuesta.bytesRestaurados;
+        const bytesTransferidos = tipo === 'restore'
+            ? respuesta.bytesRestaurados
+            : respuesta.bytesRespaldados;
         const detalleOperacion = Number.isFinite(bytesTransferidos)
             ? ` · ${formatearGigabytes(bytesTransferidos)} · ${formatearDuracion(duracionMs)}`
             : '';
@@ -679,6 +692,46 @@ async function iniciarRestauracion() {
         payload: { rutaRespaldoPC: window.api.joinPath(backupPathInput.value, respaldoSeleccionado) },
         estadoInicial: `Restaurando desde: ${respaldoSeleccionado}. No desconectes el cable.`,
         textoInicial: 'Preparando restauración...'
+    });
+}
+async function iniciarRescateRapido() {
+    if (!dispositivoIdActual) {
+        setStatus('No se detectó el ID del dispositivo.', 'error');
+        return;
+    }
+
+    const carpetaDestino = backupPathInput.value;
+    if (!carpetaDestino) {
+        setStatus('Selecciona la carpeta de destino primero.', 'error');
+        return;
+    }
+
+    const confirmado = await mostrarModalConfirmacion({
+        titulo: 'Rescate rápido multimedia',
+        mensaje: 'Se escaneará todo el almacenamiento del teléfono buscando fotos y videos mayores a 100 KB (ignorando caché y publicidad) y se ordenarán en las carpetas "Fotos" y "Videos".\n\n¿Deseas iniciar el rescate?',
+        textoAceptar: 'Iniciar rescate'
+    });
+    if (!confirmado) return;
+
+    const nombreBackup = backupNameInput.value.trim() || generarNombreBackup(dispositivoIdActual);
+    backupNameInput.value = nombreBackup;
+
+    await ejecutarOperacionUI({
+        tipo: 'rescue',
+        canal: 'iniciar-rescate',
+        payload: {
+            destinationPath: carpetaDestino,
+            backupName: nombreBackup
+        },
+        estadoInicial: 'Rescatando fotos y videos. No desconectes el cable.',
+        textoInicial: 'Escaneando almacenamiento...'
+    });
+}
+
+if (rescueBtn) {
+    rescueBtn.addEventListener('click', async () => {
+        if (operacionEnCurso) return;
+        await iniciarRescateRapido();
     });
 }
 
