@@ -706,22 +706,47 @@ async function iniciarRescateRapido() {
         return;
     }
 
-    const confirmado = await mostrarModalConfirmacion({
-        titulo: 'Rescate rápido multimedia',
-        mensaje: 'Se escaneará todo el almacenamiento del teléfono buscando fotos y videos mayores a 100 KB (ignorando caché y publicidad) y se ordenarán en las carpetas "Fotos" y "Videos".\n\n¿Deseas iniciar el rescate?',
-        textoAceptar: 'Iniciar rescate'
-    });
-    if (!confirmado) return;
-
     const nombreBackup = backupNameInput.value.trim() || generarNombreBackup(dispositivoIdActual);
     backupNameInput.value = nombreBackup;
+
+    let actualizarExistente = false;
+    try {
+        const comprobacion = await window.api.checkBackupTarget({
+            carpetaBase: carpetaDestino,
+            nombreBackup
+        });
+        if (!comprobacion.success) {
+            setStatus(comprobacion.msg, 'error');
+            return;
+        }
+
+        if (comprobacion.exists) {
+            actualizarExistente = await mostrarModalConfirmacion({
+                titulo: '¿Usar carpeta de respaldo existente?',
+                mensaje: `Ya existe un respaldo llamado "${nombreBackup}". Si continúas con el rescate rápido:\n - Las fotos y videos que ya existan con el mismo nombre y peso se omitirán automáticamente.\n - Solo se extraerán los archivos nuevos dentro de "Rescate_Multimedia".\n¿Deseas continuar?`,
+                textoAceptar: 'Fusionar y Rescatar'
+            });
+            if (!actualizarExistente) return;
+        } else {
+            const confirmado = await mostrarModalConfirmacion({
+                titulo: 'Rescate rápido multimedia',
+                mensaje: 'Se escaneará todo el almacenamiento del teléfono buscando fotos y videos mayores a 100 KB (ignorando caché y publicidad) y se ordenarán en las carpetas "Fotos" y "Videos".\n\n¿Deseas iniciar el rescate?',
+                textoAceptar: 'Iniciar rescate'
+            });
+            if (!confirmado) return;
+        }
+    } catch (error) {
+        setStatus(`No se pudo comprobar si el respaldo ya existe: ${error.message}`, 'error');
+        return;
+    }
 
     await ejecutarOperacionUI({
         tipo: 'rescue',
         canal: 'iniciar-rescate',
         payload: {
             destinationPath: carpetaDestino,
-            backupName: nombreBackup
+            backupName: nombreBackup,
+            actualizarExistente
         },
         estadoInicial: 'Rescatando fotos y videos. No desconectes el cable.',
         textoInicial: 'Escaneando almacenamiento...'

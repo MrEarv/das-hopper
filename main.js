@@ -1,7 +1,7 @@
 const { app, BrowserWindow, dialog, ipcMain, screen } = require('electron');
 const { execFile, spawn } = require('child_process');
 const fs = require('fs/promises');
-const { createWriteStream, createReadStream, existsSync } = require('fs');
+const { createWriteStream, createReadStream, existsSync, statSync } = require('fs');
 const { pipeline } = require('stream/promises');
 const crypto = require('crypto');
 const path = require('path');
@@ -350,19 +350,44 @@ async function ejecutarOperacion(event, tipo, fn) {
     }
 }
 
-function obtenerRutaUnica(carpetaDestino, nombreArchivo) {
+/**
+ * Revisa si el archivo ya existe en la PC:
+ * - Si no existe, devuelve la ruta limpia.
+ * - Si existe y pesa exactamente lo mismo (bytesRemoto), indica que debe omitirse.
+ * - Si existe pero pesa distinto (es otra foto con el mismo nombre), busca el sufijo _1, _2...
+ */
+function resolverDestinoRescate(carpetaDestino, nombreArchivo, bytesRemoto) {
     let destinoFinal = path.join(carpetaDestino, nombreArchivo);
-    if (!existsSync(destinoFinal)) return destinoFinal;
+
+    const mismoPeso = (ruta) => {
+        if (!bytesRemoto || bytesRemoto <= 0) return false;
+        try {
+            return statSync(ruta).size === bytesRemoto;
+        } catch (e) {
+            return false;
+        }
+    };
+
+    if (!existsSync(destinoFinal)) {
+        return { omitir: false, esOriginal: true, rutaLocal: destinoFinal };
+    }
+    if (mismoPeso(destinoFinal)) {
+        return { omitir: true };
+    }
 
     const ext = path.extname(nombreArchivo);
     const base = path.basename(nombreArchivo, ext);
     let contador = 1;
 
     while (existsSync(destinoFinal)) {
+        if (mismoPeso(destinoFinal)) {
+            return { omitir: true };
+        }
         destinoFinal = path.join(carpetaDestino, `${base}_${contador}${ext}`);
         contador++;
     }
-    return destinoFinal;
+
+    return { omitir: false, esOriginal: false, rutaLocal: destinoFinal };
 }
 
 async function ejecutarRescate(event, datos, op) {
@@ -382,6 +407,23 @@ async function ejecutarRescate(event, datos, op) {
     const serial = dispositivoActual;
     if (!serial) {
         return { success: false, msg: 'No hay un dispositivo listo. Conéctalo y autoriza la depuración USB.' };
+    }
+
+    const carpetaDestinoPC = path.join(carpetaBase, nombreBackup);
+
+    // Comprobar si la carpeta de respaldo ya existe
+    try {
+        const info = await fs.lstat(carpetaDestinoPC);
+        if (!info.isDirectory() || info.isSymbolicLink()) {
+            return { success: false, msg: 'Ya existe un elemento con ese nombre que no es una carpeta de respaldo.' };
+        }
+        if (datos.actualizarExistente !== true) {
+            return { success: false, msg: 'Ya existe un respaldo con ese nombre. Confirma si deseas actualizarlo.' };
+        }
+    } catch (error) {
+        if (error.code !== 'ENOENT') {
+            return { success: false, msg: `No se pudo comprobar el respaldo existente: ${error.message}` };
+        }
     }
 
     emisor.enviar({ type: 'prepare', text: 'Escaneando fotos y videos (+100 KB) en todo el dispositivo...' });
@@ -419,7 +461,7 @@ async function ejecutarRescate(event, datos, op) {
         return { success: false, msg: 'No se encontraron fotos ni videos mayores a 100 KB.' };
     }
 
-    const carpetaRaiz = path.join(carpetaBase, nombreBackup, 'Rescate_Multimedia');
+    const carpetaRaiz = path.join(carpetaDestinoPC, 'Rescate_Multimedia');
     const carpetaFotos = path.join(carpetaRaiz, 'Fotos');
     const carpetaVideos = path.join(carpetaRaiz, 'Videos');
 
@@ -430,18 +472,19 @@ async function ejecutarRescate(event, datos, op) {
         return { success: false, msg: `No se pudieron crear las carpetas de rescate: ${error.message}` };
     }
 
-    // ---- Armado de lotes para máxima velocidad sin sobrescribir duplicados ----
+    // ---- Armado de lotes filtrando archivos idénticos (mismo nombre y peso) ----
     const MAX_ARCHIVOS_LOTE = 60;
-    const MAX_BYTES_LOTE = 64 * 1024 * 1024; // 64 MB por lote para refrescar progreso seguido
+    const MAX_BYTES_LOTE = 64 * 1024 * 1024;
     const MAX_CHARS_LOTE = 8000;
 
     const extVideos = new Set(['.mp4', '.mov', '.mkv']);
-    const nombresUsadosFotos = new Set();
-    const nombresUsadosVideos = new Set();
+    const vistosFotos = new Map();
+    const vistosVideos = new Map();
 
     const unidades = [];
     let loteFotos = { rutas: [], bytes: 0, chars: 0, ultimoNombre: '' };
     let loteVideos = { rutas: [], bytes: 0, chars: 0, ultimoNombre: '' };
+    let omitidos = 0;
 
     const cerrarLote = (lote, destinoDir) => {
         if (lote.rutas.length === 0) return;
@@ -465,10 +508,28 @@ async function ejecutarRescate(event, datos, op) {
         const esVideo = extVideos.has(path.extname(claveNombre));
 
         const subcarpeta = esVideo ? carpetaVideos : carpetaFotos;
-        const setUsados = esVideo ? nombresUsadosVideos : nombresUsadosFotos;
+        const mapaVistos = esVideo ? vistosVideos : vistosFotos;
         const loteActual = esVideo ? loteVideos : loteFotos;
 
-        if (setUsados.has(claveNombre) || existsSync(path.join(subcarpeta, nombreOriginal))) {
+        const pesosVistos = mapaVistos.get(claveNombre);
+
+        if (pesosVistos && item.bytes > 0 && pesosVistos.has(item.bytes)) {
+            omitidos++;
+            continue;
+        }
+
+        const resolucion = resolverDestinoRescate(subcarpeta, nombreOriginal, item.bytes);
+        if (resolucion.omitir) {
+            omitidos++;
+            if (!pesosVistos) mapaVistos.set(claveNombre, new Set([item.bytes]));
+            else pesosVistos.add(item.bytes);
+            continue;
+        }
+
+        if (pesosVistos || !resolucion.esOriginal) {
+            if (!pesosVistos) mapaVistos.set(claveNombre, new Set([item.bytes]));
+            else pesosVistos.add(item.bytes);
+
             unidades.push({
                 tipo: 'individual',
                 ruta: item.ruta,
@@ -481,7 +542,8 @@ async function ejecutarRescate(event, datos, op) {
             continue;
         }
 
-        setUsados.add(claveNombre);
+        // Es el primero con este nombre y no existe en disco: entra al lote rápido
+        mapaVistos.set(claveNombre, new Set([item.bytes]));
         const largoRuta = item.ruta.length + 3;
 
         if (
@@ -502,8 +564,19 @@ async function ejecutarRescate(event, datos, op) {
     cerrarLote(loteFotos, carpetaFotos);
     cerrarLote(loteVideos, carpetaVideos);
 
+    // Si todos los archivos ya existían con el mismo nombre y peso
+    if (unidades.length === 0 && omitidos > 0) {
+        return {
+            success: true,
+            msg: `Todo al día: se omitieron ${omitidos} archivos que ya existían con el mismo peso en ${carpetaRaiz}`,
+            bytesRespaldados: 0,
+            warnings: advertencias
+        };
+    }
+
     // ---- Ejecución de lotes ----
-    const totalBytes = archivos.reduce((acc, a) => acc + a.bytes, 0);
+    const totalArchivosACopiar = unidades.reduce((acc, u) => acc + u.cantidad, 0);
+    const totalBytes = unidades.reduce((acc, u) => acc + u.bytes, 0);
     let bytesHechos = 0;
     let archivosProcesados = 0;
     let extraidos = 0;
@@ -519,10 +592,15 @@ async function ejecutarRescate(event, datos, op) {
                 { timeout: 600000, op }
             );
         } else {
-            const rutaLocal = obtenerRutaUnica(unidad.subcarpeta, unidad.nombreOriginal);
+            const res = resolverDestinoRescate(unidad.subcarpeta, unidad.nombreOriginal, unidad.bytes);
+            if (res.omitir) {
+                omitidos++;
+                archivosProcesados++;
+                continue;
+            }
             rPull = await ejecutarAdb(
                 serial,
-                ['pull', '-a', unidad.ruta, rutaLocal],
+                ['pull', '-a', unidad.ruta, res.rutaLocal],
                 { timeout: 600000, op }
             );
         }
@@ -540,7 +618,7 @@ async function ejecutarRescate(event, datos, op) {
 
         const pct = totalBytes > 0
             ? porcentaje(bytesHechos, totalBytes)
-            : porcentaje(archivosProcesados, archivos.length);
+            : porcentaje(archivosProcesados, totalArchivosACopiar);
 
         emisor.progreso({
             percent: pct,
@@ -548,21 +626,21 @@ async function ejecutarRescate(event, datos, op) {
             bytesTotal: totalBytes > 0 ? totalBytes : undefined,
             file: unidad.etiqueta,
             taskName: 'Extrayendo multimedia',
-            taskIndex: Math.min(archivosProcesados - 1, archivos.length - 1),
-            taskCount: archivos.length
+            taskIndex: Math.min(archivosProcesados - 1, totalArchivosACopiar - 1),
+            taskCount: totalArchivosACopiar
         });
     }
 
-    if (extraidos === 0) {
+    if (extraidos === 0 && omitidos === 0) {
         return { success: false, msg: 'No se pudo extraer ningún archivo multimedia.', warnings: advertencias };
     }
 
-    const medidaFinal = totalBytes > 0 ? { bytes: bytesHechos } : await medirCarpeta(carpetaRaiz, op);
+    const detalleOmitidos = omitidos > 0 ? `, ${omitidos} idénticos omitidos` : '';
 
     return {
         success: true,
-        msg: `Rescate completado (${extraidos} archivos en ${carpetaRaiz})`,
-        bytesRespaldados: medidaFinal.bytes,
+        msg: `Rescate completado (${extraidos} extraídos${detalleOmitidos} en ${carpetaRaiz})`,
+        bytesRespaldados: bytesHechos,
         warnings: advertencias
     };
 }
